@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="dev.local.deepseekapitest">
+  <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="34" />
+  <application android:label="Personal API Test" android:hasCode="true" />
+  <instrumentation android:name="dev.local.deepseekapitest.ApiSelfTest" android:targetPackage="com.deepseek.chat" android:label="Native API protocol verification" android:functionalTest="true" />
+</manifest>

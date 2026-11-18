@@ -1,0 +1,64 @@
+{
+  "version": "UI3",
+  "date": "2026-11-18",
+  "environment": "isolated read-only Android 36 emulator; no user phone",
+  "transport": "deterministic HTTPS fixtures; zero PCM bytes; no live billing/API credentials",
+  "result": "PASS",
+  "checks_count": 29,
+  "checks": [
+    "real ny1 upload hook suspends original coroutine",
+    "image upload completes original continuation",
+    "image upload returns original native success",
+    "image progress moves from 0 to 100 percent",
+    "extensionless gallery image classified as image",
+    "native image dimensions are preserved",
+    "native image preview survives original URI grant",
+    "image multipart omits document parsing purpose",
+    "multipart sends actual PNG MIME",
+    "Files API beta header is present",
+    "chat sends image source file_id to Messages API",
+    "unsupported BMP converted to public API PNG",
+    "API TTS forces original 24 kHz PCM playback format",
+    "real it1 TTS hook returns original Kotlin Flow",
+    "TTS flow completes native coroutine",
+    "TTS completes successfully",
+    "original ready and finish audio events emitted",
+    "audio event uses original PCM format",
+    "audio packet carries original big-endian sequence header",
+    "native audio pipeline receives all PCM bytes",
+    "speech uses official public TTS endpoint",
+    "only answer body is synthesized, thinking excluded",
+    "HTTP 402 resumes native flow with failure",
+    "truncated odd-byte PCM is rejected",
+    "cancelled native playback does not start a billed API request",
+    "TTS stop fixture reaches active HTTP audio stream",
+    "native session stop disconnects active TTS HTTP stream",
+    "upload failure resumes original error state without false completion",
+    "API disabled preserves original voice route"
+  ],
+  "ui_checks": {
+    "native_settings_entry": true,
+    "quota_open_and_toolbar_back": true,
+    "about_UI3_open_and_system_back": true,
+    "fade_entry_ms": 220,
+    "fade_exit_ms": 180,
+    "motion_recording_frame_review": true,
+    "both_packages_update_install": true,
+    "coexist_cold_start": true,
+    "android_crash_buffer_empty": true
+  },
+  "unverified": [
+    "real TTS service synthesis and audible playback on phone",
+    "real image upload and model answer on phone",
+    "original voice selection synchronization",
+    "voice input and voice calls"
+  ],
+  "artifact_sha256": {
+    "DeepSeek-2.8.0-PersonalAPI.apk": "87798c2b87df08dec15d6ae1ed799510355ed154a24ef82f75a569f4dee7e9a8",
+    "DeepSeek-2.8.0-PersonalAPI-Coexist.apk": "d78d53fc464640b41311bd82a9d9831e736265a6dde9a7ea0b7a319273676a91"
+  },
+  "test_source_sha256": {
+    "ApiMediaTest.java": "2a3c95440765eac7ac01065ad42dd0422d674725c224fa59844362fbdff5f484",
+    "ApiSelfTest.java": "f69cef97650f0d068bce6dc6e881e60181064f850b02b2c12a188d238fe9fb39"
+  }
+}

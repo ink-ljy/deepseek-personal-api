@@ -9,6 +9,9 @@ native-classes/
 native-dex/
 smali-dex/
 test-*/
+!test-src/
+!test-src/*.java
+!test-src/AndroidManifest.xml
 __pycache__/
 *.apk
 *.idsig

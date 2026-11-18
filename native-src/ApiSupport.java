@@ -95,6 +95,7 @@ public final class ApiSupport {
     static String error(int code) {
         switch(code) { case 401: return "API Key 无效或已失效，请重新配置。"; case 402: return "API 余额不足，请到官方平台充值。";
             case 429: return "API 请求频率受限，请稍后重试。"; case 400: return "API 参数不受支持，请检查当前模型及输入。";
+            case 413: return "附件或请求超过官方 API 大小限制，请压缩后重试。";
             default: return "DeepSeek API 返回 HTTP " + code + "，请稍后重试。"; }
     }
     static JSONObject obj(Object... entries) throws JSONException {

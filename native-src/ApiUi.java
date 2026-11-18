@@ -60,7 +60,7 @@ public final class ApiUi {
         Context c=activity;
         boolean dark=(c.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)==Configuration.UI_MODE_NIGHT_YES;
         int bg=dark?0xff111111:0xfff7f7f7, card=dark?0xff202020:Color.WHITE, fg=dark?0xffeeeeee:0xff141414, muted=dark?0xffaaaaaa:0xff999999, blue=0xff4d6bfe;
-        Dialog d=new Dialog(c,android.R.style.Theme_DeviceDefault_Light_NoActionBar);
+        Dialog d=new ApiPageDialog(c);
         LinearLayout root=column(c); root.setBackgroundColor(bg);
         ApiNativeViews.owners(root,activity);
         root.setOnApplyWindowInsetsListener((view,insets)->{int bottom=android.os.Build.VERSION.SDK_INT>=30?insets.getInsets(WindowInsets.Type.systemBars()).bottom:insets.getSystemWindowInsetBottom();view.setPadding(0,0,0,bottom);return insets;});
@@ -116,13 +116,13 @@ public final class ApiUi {
             Activity activity=ApiSupport.activity.get();if(activity==null)return;
             Context c=activity;boolean dark=(c.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)==Configuration.UI_MODE_NIGHT_YES;
             int bg=dark?0xff111111:0xfff7f7f7,card=dark?0xff202020:Color.WHITE,fg=dark?0xffeeeeee:0xff141414,muted=dark?0xffaaaaaa:0xff999999;
-            Dialog d=new Dialog(c,android.R.style.Theme_DeviceDefault_Light_NoActionBar);
+            Dialog d=new ApiPageDialog(c);
             LinearLayout root=column(c);root.setBackgroundColor(bg);ApiNativeViews.owners(root,activity);
             root.setOnApplyWindowInsetsListener((v,insets)->{int bottom=android.os.Build.VERSION.SDK_INT>=30?insets.getInsets(WindowInsets.Type.systemBars()).bottom:insets.getSystemWindowInsetBottom();v.setPadding(0,0,0,bottom);return insets;});
             root.addView(ApiNativeViews.header(activity,"关于 DeepSeek API",d::dismiss),new LinearLayout.LayoutParams(-1,-2));
             ScrollView scroll=new ScrollView(c);scroll.setVerticalScrollBarEnabled(false);LinearLayout body=column(c);body.setPadding(dp(c,16),dp(c,28),dp(c,16),dp(c,24));scroll.addView(body);root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
             ImageView logo=new ImageView(c);logo.setImageDrawable(c.getPackageManager().getApplicationIcon(c.getApplicationInfo()));LinearLayout.LayoutParams logoSize=new LinearLayout.LayoutParams(dp(c,64),dp(c,64));logoSize.gravity=Gravity.CENTER_HORIZONTAL;body.addView(logo,logoSize);gap(body,16);
-            TextView name=text(c,"DeepSeek API",20,fg);name.setGravity(Gravity.CENTER);body.addView(name);gap(body,8);TextView version=text(c,"2.8.0 · 个人 API 版 UI2",14,muted);version.setGravity(Gravity.CENTER);body.addView(version);gap(body,32);
+            TextView name=text(c,"DeepSeek API",20,fg);name.setGravity(Gravity.CENTER);body.addView(name);gap(body,8);TextView version=text(c,"2.8.0 · 个人 API 版 UI3",14,muted);version.setGravity(Gravity.CENTER);body.addView(version);gap(body,32);
             LinearLayout cardView=column(c);cardView.setPadding(dp(c,16),dp(c,16),dp(c,16),dp(c,16));cardView.setBackground(background(card,16,c));body.addView(cardView);
             cardView.addView(text(c,"原应用：DeepSeek",16,fg));gap(cardView,12);
             cardView.addView(text(c,"基于 DeepSeek 原版应用重构，支持使用个人 API 额度（个人修改版，非官方发布）。",16,fg));

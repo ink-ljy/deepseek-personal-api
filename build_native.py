@@ -75,6 +75,16 @@ patch('smali/ny1.smali',lambda s:method_entry(s,'.method public final a(Lui4;ZLj
     if-eqz v0, :personal_api_original_upload
     return-object v0
     :personal_api_original_upload'''))
+patch('smali/edb.smali',lambda s:method_entry(s,'.method public final a(Lqcb;Lncb;)Lddb;', '''    invoke-static/range {p1 .. p1}, LApiSpeech;->request(Ljava/lang/Object;)Ljava/lang/Object;
+    move-result-object v0
+    check-cast v0, Lqcb;
+    move-object/from16 p1, v0'''))
+patch('smali/it1.smali',lambda s:method_entry(s,'.method public final j(Ljbb;Ljava/lang/String;Lul4;JLnc3;)Ljava/lang/Object;', '''    invoke-static {p1}, LApiSpeech;->flow(Ljava/lang/Object;)Ljava/lang/Object;
+    move-result-object v0
+    if-eqz v0, :personal_api_original_tts
+    return-object v0
+    :personal_api_original_tts'''))
+patch('smali/ddb.smali',lambda s:method_entry(s,'.method public final c(Ljava/lang/String;)V', '''    invoke-static {p0}, LApiSpeech;->stop(Ljava/lang/Object;)V'''))
 
 classes=ROOT/'native-classes';classes.mkdir(exist_ok=True)
 run(['javac','-encoding','UTF-8','-source','8','-target','8','-Xlint:-options','-classpath',ANDROID,'-d',classes,*sorted((ROOT/'native-src').glob('*.java'))])
@@ -113,6 +123,6 @@ output=ROOT/'DeepSeek-2.8.0-PersonalAPI.apk'
 run([BT/'apksigner.bat','sign','--ks',keystore,'--ks-key-alias','personal-api','--ks-pass','file:'+str(password),'--out',output,aligned])
 run([BT/'apksigner.bat','verify','--verbose',output])
 run([BT/'zipalign.exe','-c','-P','16','4',output])
-evidence={'input':ORIGINAL.name,'input_sha256':hashlib.sha256(ORIGINAL.read_bytes()).hexdigest(),'output':output.name,'output_sha256':hashlib.sha256(output.read_bytes()).hexdigest(),'patches':['MainActivity initialization','original settings and about rows','original Compose header and settings controls','OkHttp request adapter','native file adapter','native branch context capture','API mode skips chat-service-specific PoW'],'key_embedded':False}
+evidence={'input':ORIGINAL.name,'input_sha256':hashlib.sha256(ORIGINAL.read_bytes()).hexdigest(),'output':output.name,'output_sha256':hashlib.sha256(output.read_bytes()).hexdigest(),'patches':['MainActivity initialization','original settings and about rows','original Compose header and settings controls','OkHttp request adapter','native file adapter with progress','native branch context capture','API mode skips chat-service-specific PoW','public TTS request normalization','public TTS native event Flow','native playback stop cancels public TTS'],'key_embedded':False}
 (ROOT/'build-evidence.json').write_text(json.dumps(evidence,ensure_ascii=False,indent=2),encoding='utf-8')
 print('BUILT',output,output.stat().st_size)
