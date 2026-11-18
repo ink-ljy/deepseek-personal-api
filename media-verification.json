@@ -1,9 +1,9 @@
 {
-  "version": "UI3",
+  "version": "UI4",
   "date": "2026-11-18",
-  "environment": "isolated read-only Android 36 emulator; no user phone",
-  "transport": "deterministic HTTPS fixtures; zero PCM bytes; no live billing/API credentials",
   "result": "PASS",
+  "environment": "isolated read-only Android 36 emulator",
+  "transport": "deterministic HTTPS fixtures and synthetic zero PCM; no live billing or API credentials",
   "checks_count": 29,
   "checks": [
     "real ny1 upload hook suspends original coroutine",
@@ -36,29 +36,18 @@
     "upload failure resumes original error state without false completion",
     "API disabled preserves original voice route"
   ],
-  "ui_checks": {
-    "native_settings_entry": true,
-    "quota_open_and_toolbar_back": true,
-    "about_UI3_open_and_system_back": true,
-    "fade_entry_ms": 220,
-    "fade_exit_ms": 180,
-    "motion_recording_frame_review": true,
-    "both_packages_update_install": true,
-    "coexist_cold_start": true,
-    "android_crash_buffer_empty": true
-  },
-  "unverified": [
-    "real TTS service synthesis and audible playback on phone",
-    "real image upload and model answer on phone",
-    "original voice selection synchronization",
-    "voice input and voice calls"
-  ],
   "artifact_sha256": {
-    "DeepSeek-2.8.0-PersonalAPI.apk": "87798c2b87df08dec15d6ae1ed799510355ed154a24ef82f75a569f4dee7e9a8",
-    "DeepSeek-2.8.0-PersonalAPI-Coexist.apk": "d78d53fc464640b41311bd82a9d9831e736265a6dde9a7ea0b7a319273676a91"
+    "DeepSeek-2.8.0-PersonalAPI.apk": "5887ed0fa658fe140f4a0a729b35f46920cbf27fa2a2cf60f313f429a4d3827f",
+    "DeepSeek-2.8.0-PersonalAPI-Coexist.apk": "350e51f4246e5ea617ce74446f176b6d809c67535de2e71271333aa364b2561f"
   },
   "test_source_sha256": {
     "ApiMediaTest.java": "2a3c95440765eac7ac01065ad42dd0422d674725c224fa59844362fbdff5f484",
-    "ApiSelfTest.java": "f69cef97650f0d068bce6dc6e881e60181064f850b02b2c12a188d238fe9fb39"
-  }
+    "ApiSelfTest.java": "0b7fe2e6808e194f2188a6279b38502832d70c5ff9f1aef866ab4c5da985f722"
+  },
+  "unverified": [
+    "real TTS synthesis and audible playback on phone",
+    "real image upload and model answer on phone",
+    "voice selection synchronization",
+    "voice input and voice calls"
+  ]
 }

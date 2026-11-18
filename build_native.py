@@ -86,6 +86,20 @@ patch('smali/it1.smali',lambda s:method_entry(s,'.method public final j(Ljbb;Lja
     :personal_api_original_tts'''))
 patch('smali/ddb.smali',lambda s:method_entry(s,'.method public final c(Ljava/lang/String;)V', '''    invoke-static {p0}, LApiSpeech;->stop(Ljava/lang/Object;)V'''))
 
+def personal_footer(source):
+    # Remove the original app's filing numbers, retaining its AI-generated-content notice.
+    lines=source.splitlines(keepends=True)
+    matches=[i for i,line in enumerate(lines) if 'const-string v9,' in line and 'Beijing-DeepseekChat-202404280016' in line]
+    assert len(matches)==1
+    lines[matches[0]]='    const-string v9, ""\n'
+    source=''.join(lines)
+    start=source.index('.method public static final x(Lyob;Lem7;Lh25;I)V')
+    marker='invoke-static {v3, v1}, Li77;->C(ILh25;)Ljava/lang/String;'
+    pos=source.index(marker,start)
+    pos=source.index('move-result-object v3',pos)+len('move-result-object v3')
+    return source[:pos]+'\n\n    invoke-static {v3}, LApiUi;->footer(Ljava/lang/String;)Ljava/lang/String;\n    move-result-object v3'+source[pos:]
+patch('smali_classes3/u48.smali',personal_footer)
+
 classes=ROOT/'native-classes';classes.mkdir(exist_ok=True)
 run(['javac','-encoding','UTF-8','-source','8','-target','8','-Xlint:-options','-classpath',ANDROID,'-d',classes,*sorted((ROOT/'native-src').glob('*.java'))])
 dex=ROOT/'native-dex';dex.mkdir(exist_ok=True)

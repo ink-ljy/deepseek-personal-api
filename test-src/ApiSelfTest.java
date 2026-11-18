@@ -43,6 +43,7 @@ public final class ApiSelfTest extends Instrumentation {
                 Object click=proxy("xy4",(p2,m2,a2)->field(c("qjb"),"a"));
                 Object padding=proxy("m98",(p2,m2,a2)->0f);
                 Object modifier=call(c("s9a"),"c",field(c("bm7"),"a"),1f);
+                if(args.getString("mode","").equals("footer")){call(c("u48"),"x",field(field(c("gz5"),"c"),"b"),modifier,composer,0);return field(c("qjb"),"a");}
                 Object[] values=new Object[22];values[0]=click;values[1]=false;for(int i=2;i<=11;i++)values[i]=noop;
                 values[12]=false;values[13]=noop;values[14]=proxy("yob",(p2,m2,a2)->"");values[15]=false;values[16]=false;values[17]=padding;values[18]=modifier;values[19]=composer;values[20]=0;values[21]=0;
                 call(c("sz6"),"l",values);
@@ -79,7 +80,7 @@ public final class ApiSelfTest extends Instrumentation {
         loader=getTargetContext().getClassLoader();call(c("ApiSupport"),"init",getTargetContext());
         String mode=args.getString("mode","protocol");
         if(mode.equals("media")){ApiMediaTest.run(this);}
-        else if(mode.equals("quota")||mode.equals("settings")||mode.equals("about")){
+        else if(mode.equals("quota")||mode.equals("settings")||mode.equals("about")||mode.equals("footer")){
             Intent launch=getTargetContext().getPackageManager().getLaunchIntentForPackage("com.deepseek.chat");launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);Activity activity=startActivitySync(launch);call(c("ApiSupport"),"init",activity);
             runOnMainSync(()->{try{if(mode.equals("quota"))call(c("ApiUi"),"open",activity);else if(mode.equals("about"))call(c("ApiUi"),"openAbout",activity);else{android.view.View view=(android.view.View)make("androidx.compose.ui.platform.ComposeView",activity);call(view,"setContent",compose(0));activity.setContentView(view);}}catch(Exception e){throw new RuntimeException(e);}});Thread.sleep(1000);check(true,"native "+mode+" screen opened");
             if(args.getString("hold","false").equals("true"))Thread.sleep(45000);

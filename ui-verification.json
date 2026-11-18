@@ -1,0 +1,59 @@
+{
+  "version": "UI4",
+  "date": "2026-11-18",
+  "result": "PASS",
+  "environment": "isolated read-only Android 36 emulator",
+  "original_motion_evidence": {
+    "route": "c0 case 11; t27.p",
+    "transition_classes": [
+      "eh",
+      "cu7",
+      "io7",
+      "z64"
+    ],
+    "horizontal_distance_fraction": 0.2,
+    "horizontal_duration_ms": 300,
+    "horizontal_easing": [
+      0.4,
+      0,
+      0.2,
+      1
+    ],
+    "fade_out_duration_ms": 105,
+    "fade_out_easing": [
+      0.4,
+      0,
+      1,
+      1
+    ],
+    "fade_in_delay_ms": 105,
+    "fade_in_duration_ms": 195,
+    "fade_in_easing": [
+      0,
+      0,
+      0.2,
+      1
+    ]
+  },
+  "ui_checks": {
+    "quota_opens_from_original_settings_row": true,
+    "toolbar_back_returns_to_settings": true,
+    "about_shows_UI4_and_DSH_CODEX_attribution": true,
+    "system_back_returns_to_settings": true,
+    "original_CN_compliance_footer_renders_new_attribution": true,
+    "old_filing_ids_absent_from_APK": true,
+    "screenrecord_frame_review_slide_and_fade": true,
+    "both_packages_update_install": true,
+    "coexist_cold_start": true
+  },
+  "artifact_sha256": {
+    "DeepSeek-2.8.0-PersonalAPI.apk": "5887ed0fa658fe140f4a0a729b35f46920cbf27fa2a2cf60f313f429a4d3827f",
+    "DeepSeek-2.8.0-PersonalAPI-Coexist.apk": "350e51f4246e5ea617ce74446f176b6d809c67535de2e71271333aa364b2561f"
+  },
+  "motion_video_sha256": "5c0342bdcee8b944a383ab3e93a8859d1ef502b391c7c042822bd21a09bd785e",
+  "reference_video_sha256": "ccea12fcc70c1cfb067cc03bc66a25359927969080354b045b1d90c0af2f4002",
+  "limitations": [
+    "reproduced original motion parameters in the added page host; phone visual identity requires user acceptance",
+    "reference video and its private account screens are not published"
+  ]
+}
