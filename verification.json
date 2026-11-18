@@ -1,0 +1,30 @@
+{
+  "original_sha256": "489ff75c6debfce94fcb247595969b71314522c736b11548eb27c845a5f4dce4",
+  "original_unchanged": true,
+  "artifacts": [
+    {
+      "file": "DeepSeek-2.8.0-PersonalAPI.apk",
+      "sha256": "76a230b0e45e9c74e5d578bfd25ca0d4b735028e1887bb3dcd15def930d72786",
+      "bytes": 23102801,
+      "original_resource_entries_unchanged": 877,
+      "temporary_key_embedded": false,
+      "test_helper_embedded": false,
+      "original_classes2_unchanged": true,
+      "original_manifest_unchanged": true,
+      "signature_verifies": true,
+      "zip_alignment_16kb": true
+    },
+    {
+      "file": "DeepSeek-2.8.0-PersonalAPI-Coexist.apk",
+      "sha256": "b0149020c038a2bc90e058c46e7ec79c3cc6940a35a93439023492b6956bd703",
+      "bytes": 23102801,
+      "original_resource_entries_unchanged": 877,
+      "temporary_key_embedded": false,
+      "test_helper_embedded": false,
+      "original_classes2_unchanged": true,
+      "original_manifest_unchanged": false,
+      "signature_verifies": true,
+      "zip_alignment_16kb": true
+    }
+  ]
+}
