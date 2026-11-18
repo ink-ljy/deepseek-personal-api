@@ -18,6 +18,8 @@
 
 ## UI5 更新（2026-11-18）
 
+修复粘贴 API Key 含换行时出现 `Unexpected char 0x0a ... in header value` 的问题：验证、加密保存、读取旧 Key 和构造请求头前统一清理换行、空白与不可见格式字符，兼容误粘贴的 `Bearer ` 前缀。含引号、星号或其他非法字符时在本地提示重新粘贴，保留已保存的旧 Key。设置页不再回显可能包含 Key 的底层网络错误。12 项隔离 Key 输入与请求头测试通过。
+
 聊天页顶部加入小型**圆环＋上下文百分比**入口，点击查看当前模型、估算的上下文空间、最近含统计的 API 请求的实际输入/输出 token 与缓存命中率，以及压缩和恢复操作。原聊天页的其他控件保持原有用途。
 
 - 空间依据将要发送的当前分支文本估算，按官方标称 1M 上限显示；附件和工具 token 以 API 返回统计为准，不能把字符估算当成精确分词结果。应用配置预留 16,384 token 输出空间。
@@ -118,6 +120,7 @@ UI5 还增加 **16 项上下文测试**：多轮原始前缀保持、累计 usag
 adb -s '测试设备序列号' shell am instrument -w -e mode media dev.local.deepseekapitest/.ApiSelfTest
 adb -s '测试设备序列号' shell am instrument -w -e mode stream dev.local.deepseekapitest/.ApiSelfTest
 adb -s '测试设备序列号' shell am instrument -w -e mode context dev.local.deepseekapitest/.ApiSelfTest
+adb -s '测试设备序列号' shell am instrument -w -e mode key dev.local.deepseekapitest/.ApiSelfTest
 ```
 
 测试会改写并清空测试应用的 API 设置、建立虚拟本地会话和附件，**仅用于隔离模拟器，勿在保存真实数据的手机上运行**。媒体和流式恢复模式不需要真实 API Key；其他历史测试模式需要单独准备接口凭据。

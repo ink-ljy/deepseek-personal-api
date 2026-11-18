@@ -95,14 +95,14 @@ public final class ApiUi {
                 try { JSONObject data=ApiSupport.get("/user/balance",saved);JSONArray infos=data.getJSONArray("balance_infos");StringBuilder t=new StringBuilder(),i=new StringBuilder();
                     for(int n=0;n<infos.length();n++){JSONObject b=infos.getJSONObject(n);String currency=b.getString("currency");if(n>0){t.append("\n");i.append("\n");} t.append(currency.equals("CNY")?"¥":currency.equals("USD")?"$":currency+" ").append(b.getString("total_balance"));i.append("充值余额 ").append(b.getString("topped_up_balance")).append(" · 赠金 ").append(b.getString("granted_balance")).append(" ").append(currency);}
                     if(!data.getBoolean("is_available"))i.append("\n当前没有可用余额，请前往官方平台查看或充值。");total=t.length()==0?"暂无余额数据":t.toString();info=i.toString();
-                }catch(Exception e){total="查询失败";info=e.getMessage()==null?"请检查网络后重试":e.getMessage();}
+                }catch(Exception e){total="查询失败";info=ApiSupport.userError(e,"余额查询失败，请检查网络后重试。");}
                 String t=total,i=info; activity.runOnUiThread(()->{if(!d.isShowing()||request.get()!=generation)return;balance.setTextSize(t.startsWith("¥")||t.startsWith("$")?24:16);balance.setText(t);details.setText(i);details.setVisibility(i.isEmpty()?View.GONE:View.VISIBLE);refresh.setEnabled(true);});
             },"PersonalApiBalance").start();
         };
         refreshAction[0]=load;
         mode.setOnCheckedChangeListener((b,checked)->{if(checked&&ApiSupport.key().isEmpty()){mode.setChecked(false);status.setVisibility(View.VISIBLE);status.setText("请先输入并验证 API Key。");}else{ApiSupport.prefs().edit().putBoolean("enabled",checked).apply();}try{ApiNativeViews.update(modeView,ApiNativeViews.toggle(mode::isChecked,mode::setChecked));}catch(Exception e){throw new IllegalStateException(e);}});
         saveAction[0]=()->{String value=key.getText().toString().trim();if(value.isEmpty()||busy[0])return;busy[0]=true;save.setEnabled(false);status.setVisibility(View.VISIBLE);status.setText("正在验证…");
-            new Thread(()->{String error=null;try{ApiSupport.get("/models",value);ApiSupport.saveKey(value);}catch(Exception e){error=e.getMessage()==null?"验证失败，请检查网络后重试":e.getMessage();}String result=error;
+            new Thread(()->{String error=null;try{ApiSupport.get("/models",value);ApiSupport.saveKey(value);}catch(Exception e){error=ApiSupport.userError(e,"验证失败，请检查网络后重试。");}String result=error;
                 activity.runOnUiThread(()->{busy[0]=false;if(!d.isShowing())return;save.setEnabled(true);if(result!=null){status.setText(result);}else{key.setText("");key.setHint("已保存 API Key（输入新 Key 可替换）");status.setText("验证成功，已启用 API 额度。");mode.setChecked(true);load.run();}});
             },"PersonalApiKeyCheck").start();};
         gap(content,28);View topup=ApiNativeViews.action(activity,"前往官方 API 平台充值",()->openOfficial(c,"https://platform.deepseek.com/top_up"),true,card);content.addView(topup,new LinearLayout.LayoutParams(-1,dp(c,48)));

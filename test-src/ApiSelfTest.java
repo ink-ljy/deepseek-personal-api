@@ -83,6 +83,7 @@ public final class ApiSelfTest extends Instrumentation {
         if(mode.equals("media")){ApiMediaTest.run(this);}
         else if(mode.equals("stream")){ApiStreamTest.run(this);}
         else if(mode.equals("context")){ApiContextTest.run(this);}
+        else if(mode.equals("key")){ApiKeyTest.run(this);}
         else if(mode.equals("quota")||mode.equals("settings")||mode.equals("about")||mode.equals("footer")||mode.equals("contextui")){
             if(mode.equals("contextui")){ApiContextTest.transport();ApiContextTest.next=ApiContextTest.summary(this,"User goals, confirmed facts, exact numbers and remaining work are preserved in this test summary.","end_turn");call(c("ApiSupport"),"saveKey","local-ui-fixture-no-network");JSONObject seed=ApiContextTest.seed(this,"context-ui-"+System.nanoTime(),3);seed.getJSONObject("messages").getJSONObject("6").put("api_usage",json("input_tokens",900,"cache_read_input_tokens",5100,"output_tokens",1200));}
             Intent launch=getTargetContext().getPackageManager().getLaunchIntentForPackage("com.deepseek.chat");launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);Activity activity=startActivitySync(launch);call(c("ApiSupport"),"init",activity);

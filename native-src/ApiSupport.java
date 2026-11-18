@@ -20,6 +20,18 @@ public final class ApiSupport {
     static WeakReference<Activity> activity = new WeakReference<>(null);
     static final String ORIGIN = "https://api.deepseek.com";
     static final String ALIAS = "deepseek.personal.api.key.v1";
+    static final class KeyFormatException extends IOException {KeyFormatException(){super("API Key 格式不正确，请仅粘贴 Key 本身，不要包含引号、星号或其他说明文字。");}}
+    static final class ApiFailure extends IOException {ApiFailure(int code){super(error(code));}}
+    /** Remove clipboard wrapping/formatting before validation, storage, or header construction. */
+    static String normalizeKey(String input)throws IOException {
+        if(input==null||input.length()>4096)throw new KeyFormatException();
+        String value=input.trim().replaceFirst("(?i)^Bearer\\s+","");StringBuilder cleaned=new StringBuilder();
+        for(int i=0;i<value.length();){int cp=value.codePointAt(i);i+=Character.charCount(cp);
+            if(Character.isWhitespace(cp)||Character.isSpaceChar(cp)||Character.getType(cp)==Character.FORMAT)continue;
+            if(cp>126||cp<33)throw new KeyFormatException();cleaned.append((char)cp);}
+        String key=cleaned.toString();if(key.isEmpty()||key.equalsIgnoreCase("Bearer")||key.length()>1024||!key.matches("[A-Za-z0-9._~+/-]+={0,8}"))throw new KeyFormatException();return key;
+    }
+    static String userError(Exception e,String fallback){return e instanceof KeyFormatException||e instanceof ApiFailure?e.getMessage():fallback;}
     public static void init(Context context) {
         app = context.getApplicationContext();
         if (context instanceof Activity) activity = new WeakReference<>((Activity) context);
@@ -37,6 +49,7 @@ public final class ApiSupport {
         return (javax.crypto.SecretKey) store.getKey(ALIAS, null);
     }
     static void saveKey(String value) throws Exception {
+        value=normalizeKey(value);
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding"); cipher.init(Cipher.ENCRYPT_MODE, secret());
         String stored = Base64.encodeToString(cipher.getIV(), Base64.NO_WRAP) + "." +
             Base64.encodeToString(cipher.doFinal(value.getBytes(StandardCharsets.UTF_8)), Base64.NO_WRAP);
@@ -48,7 +61,7 @@ public final class ApiSupport {
             if (pieces.length != 2) return "";
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(Cipher.DECRYPT_MODE, secret(), new GCMParameterSpec(128, Base64.decode(pieces[0], Base64.NO_WRAP)));
-            return new String(cipher.doFinal(Base64.decode(pieces[1], Base64.NO_WRAP)), StandardCharsets.UTF_8);
+            return normalizeKey(new String(cipher.doFinal(Base64.decode(pieces[1], Base64.NO_WRAP)), StandardCharsets.UTF_8));
         } catch (Exception e) { return ""; }
     }
     static Object field(Object object, String name) throws Exception {
@@ -80,15 +93,16 @@ public final class ApiSupport {
         }
     }
     static HttpURLConnection connection(String path, String method, String apiKey) throws Exception {
+        String normalized=normalizeKey(apiKey);
         if (!path.startsWith("/") || path.startsWith("//")) throw new IOException("API 路径无效");
         HttpURLConnection c = (HttpURLConnection) new URL(ORIGIN + path).openConnection();
         c.setInstanceFollowRedirects(false); c.setConnectTimeout(20000); c.setReadTimeout(120000);
-        c.setRequestMethod(method); c.setRequestProperty("Authorization", "Bearer " + apiKey);
+        c.setRequestMethod(method); c.setRequestProperty("Authorization", "Bearer " + normalized);
         c.setRequestProperty("Accept", "application/json"); return c;
     }
     static JSONObject get(String path, String apiKey) throws Exception {
         HttpURLConnection c=connection(path,"GET",apiKey); c.setReadTimeout(20000);
-        try { int code=c.getResponseCode(); if(code!=200) throw new IOException(error(code));
+        try { int code=c.getResponseCode(); if(code!=200) throw new ApiFailure(code);
             return new JSONObject(new String(readAll(c.getInputStream()),StandardCharsets.UTF_8));
         } finally { c.disconnect(); }
     }
