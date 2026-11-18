@@ -4,8 +4,8 @@
   "artifacts": [
     {
       "file": "DeepSeek-2.8.0-PersonalAPI.apk",
-      "sha256": "3623fe7d276177ccd687a5ec47d1ad70558d9c1d683c3cef0205fc6017d2219c",
-      "bytes": 23123281,
+      "sha256": "84c0e2a7b25a725c9717e882f43cf63f43436036d9e0427dadfba059968bb497",
+      "bytes": 67028814,
       "original_resource_entries_unchanged": 877,
       "temporary_key_embedded": false,
       "test_helper_embedded": false,
@@ -13,12 +13,15 @@
       "original_classes2_unchanged": true,
       "original_manifest_unchanged": true,
       "signature_verifies": true,
-      "zip_alignment_16kb": true
+      "zip_alignment_16kb": true,
+      "local_embedding_model_sha256": "fb98bb56fe5d61b7ddf05dd6223b709527e47aa1d06568fd2c9ebb49cf1f463e",
+      "local_embedding_model_parameters": 23953920,
+      "local_embedding_model_bytes": 24012525
     },
     {
       "file": "DeepSeek-2.8.0-PersonalAPI-Coexist.apk",
-      "sha256": "63a9fdefea94eefb627df9d6ff92df2e94e540bd170b6fedbb5a59a31f011aea",
-      "bytes": 23123281,
+      "sha256": "07b3d0dcf7000665ed1d2d008f5bff3d7771d8ac28dfc5ae34aba74e61c26fd6",
+      "bytes": 67028814,
       "original_resource_entries_unchanged": 877,
       "temporary_key_embedded": false,
       "test_helper_embedded": false,
@@ -26,7 +29,10 @@
       "original_classes2_unchanged": true,
       "original_manifest_unchanged": false,
       "signature_verifies": true,
-      "zip_alignment_16kb": true
+      "zip_alignment_16kb": true,
+      "local_embedding_model_sha256": "fb98bb56fe5d61b7ddf05dd6223b709527e47aa1d06568fd2c9ebb49cf1f463e",
+      "local_embedding_model_parameters": 23953920,
+      "local_embedding_model_bytes": 24012525
     }
   ]
 }

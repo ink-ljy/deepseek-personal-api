@@ -18,6 +18,7 @@ public final class ApiUi {
     /** Uses the original Compose settings row, original data icon and original arrow. */
     public static void row(Object composer) {
         settingsRow(composer,"额度管理",false);
+        settingsRow(composer,"接口、人设与记忆",false);
     }
     public static void aboutRow(Object composer) {
         settingsRow(composer,"关于 DeepSeek API",true);
@@ -27,7 +28,7 @@ public final class ApiUi {
             Object context = ApiSupport.call(composer, "j", ApiSupport.field(ApiSupport.cls("fe"), "b"));
             Class<?> clickType=ApiSupport.cls("vy4"), contentType=ApiSupport.cls("lz4");
             Object click=Proxy.newProxyInstance(clickType.getClassLoader(), new Class[]{clickType}, (proxy,m,args)->{
-                if(m.getName().equals("v")) { if(about)openAbout((Context)context);else open((Context)context); return ApiSupport.unit(); }
+                if(m.getName().equals("v")) { if(about)openAbout((Context)context);else if(caption.equals("接口、人设与记忆"))ApiSettings.open();else open((Context)context); return ApiSupport.unit(); }
                 return proxyObject(proxy,m,args);
             });
             Object label=Proxy.newProxyInstance(contentType.getClassLoader(), new Class[]{contentType}, (proxy,m,args)->{
@@ -72,7 +73,8 @@ public final class ApiUi {
         Switch mode=new Switch(c);mode.setChecked(ApiSupport.enabled());
         FrameLayout modeCard=new FrameLayout(c);modeCard.setBackground(background(card,16,c));modeCard.setClipToOutline(true);
         View modeView=ApiNativeViews.create(activity,ApiNativeViews.toggle(mode::isChecked,mode::setChecked));modeCard.addView(modeView,new FrameLayout.LayoutParams(-1,-1));content.addView(modeCard,new LinearLayout.LayoutParams(-1,dp(c,48)));
-        TextView description=text(c,"填写你自己的 API Key，费用由该 Key 所属账号支付。",14,muted);description.setPadding(dp(c,16),dp(c,8),dp(c,16),0);content.addView(description);gap(content,28);
+        TextView description=text(c,"本页管理 DeepSeek 官方 Key 与余额。其他接口、人设和向量记忆请进入下方设置。",14,muted);description.setPadding(dp(c,16),dp(c,8),dp(c,16),0);content.addView(description);gap(content,12);
+        content.addView(ApiNativeViews.action(activity,"接口、人设与记忆",ApiSettings::open,true,card),new LinearLayout.LayoutParams(-1,dp(c,48)));gap(content,28);
         LinearLayout keyCard=column(c);keyCard.setBackground(background(card,16,c));keyCard.setClipToOutline(true);content.addView(keyCard);
         LinearLayout keyInput=column(c);keyInput.setPadding(dp(c,16),dp(c,16),dp(c,16),dp(c,8));keyCard.addView(keyInput);
         EditText key=new EditText(c);key.setTextSize(15);key.setSingleLine();key.setTextColor(fg);key.setHintTextColor(muted);key.setHint(ApiSupport.key().isEmpty()?"输入 DeepSeek API Key":"已保存 API Key（输入新 Key 可替换）");
@@ -100,7 +102,7 @@ public final class ApiUi {
             },"PersonalApiBalance").start();
         };
         refreshAction[0]=load;
-        mode.setOnCheckedChangeListener((b,checked)->{if(checked&&ApiSupport.key().isEmpty()){mode.setChecked(false);status.setVisibility(View.VISIBLE);status.setText("请先输入并验证 API Key。");}else{ApiSupport.prefs().edit().putBoolean("enabled",checked).apply();}try{ApiNativeViews.update(modeView,ApiNativeViews.toggle(mode::isChecked,mode::setChecked));}catch(Exception e){throw new IllegalStateException(e);}});
+        mode.setOnCheckedChangeListener((b,checked)->{if(checked&&ApiProfiles.active().key.isEmpty()){mode.setChecked(false);status.setVisibility(View.VISIBLE);status.setText("请先配置当前接口的 API Key。");}else{ApiSupport.prefs().edit().putBoolean("enabled",checked).apply();}try{ApiNativeViews.update(modeView,ApiNativeViews.toggle(mode::isChecked,mode::setChecked));}catch(Exception e){throw new IllegalStateException(e);}});
         saveAction[0]=()->{String value=key.getText().toString().trim();if(value.isEmpty()||busy[0])return;busy[0]=true;save.setEnabled(false);status.setVisibility(View.VISIBLE);status.setText("正在验证…");
             new Thread(()->{String error=null;try{ApiSupport.get("/models",value);ApiSupport.saveKey(value);}catch(Exception e){error=ApiSupport.userError(e,"验证失败，请检查网络后重试。");}String result=error;
                 activity.runOnUiThread(()->{busy[0]=false;if(!d.isShowing())return;save.setEnabled(true);if(result!=null){status.setText(result);}else{key.setText("");key.setHint("已保存 API Key（输入新 Key 可替换）");status.setText("验证成功，已启用 API 额度。");mode.setChecked(true);load.run();}});

@@ -1,0 +1,34 @@
+{
+  "version": "UI5",
+  "date": "2026-11-18",
+  "result": "PASS",
+  "environment": "isolated read-only Android 36 emulator",
+  "transport": "deterministic HTTPS fixtures; no live API credentials, billing, or real phone network",
+  "checks_count": 12,
+  "checks": [
+    "system MediaStore image is supplied as a content URI\r",
+    "original image coordinator enters API route without old service dependencies\r",
+    "original image coroutine resumes after public API upload\r",
+    "old native model key receives the new public API image ID\r",
+    "original image chip reaches native SUCCESS with image metadata\r",
+    "image can upload before the old cloud conversation first enters API mode\r",
+    "image upload explicitly sends user_data before file bytes\r",
+    "first API request retains old cloud-history branch without opening another chat\r",
+    "new image is included in the same existing-session API request\r",
+    "second API turn preserves the first request prefix including image reference\r",
+    "upload failure leaves zero-progress state and becomes original native error state\r",
+    "upload-stage diagnostic contains no key or photo URI\r"
+  ],
+  "artifact_sha256": {
+    "DeepSeek-2.8.0-PersonalAPI.apk": "84c0e2a7b25a725c9717e882f43cf63f43436036d9e0427dadfba059968bb497",
+    "DeepSeek-2.8.0-PersonalAPI-Coexist.apk": "07b3d0dcf7000665ed1d2d008f5bff3d7771d8ac28dfc5ae34aba74e61c26fd6"
+  },
+  "test_source_sha256": {
+    "ApiImageHandoverTest.java": "892a0757947328c5e1ff908574877473d75dc888c0d62da60978516e7cb05aff",
+    "ApiSelfTest.java": "dfce6b6073a97574c7a6438b35794d7a3de25da0cb29418a2d46432b15c636e0"
+  },
+  "unverified": [
+    "user phone gallery selection and real API acceptance"
+  ],
+  "scope": "Original p82 image attachment entry, native model state and old chat history continuity; HTTPS fixtures only"
+}

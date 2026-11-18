@@ -85,6 +85,11 @@ patch('smali/ny1.smali',lambda s:method_entry(s,'.method public final a(Lui4;ZLj
     if-eqz v0, :personal_api_original_upload
     return-object v0
     :personal_api_original_upload'''))
+patch('smali/p82.smali',lambda s:method_entry(s,'.method public final y(Lui4;Ly12;Ljava/lang/String;Loc3;)Ljava/lang/Object;', '''    invoke-static {p1, p2, p3, p4}, LApiFiles;->uploadImage(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;
+    move-result-object v0
+    if-eqz v0, :personal_api_original_image_model
+    return-object v0
+    :personal_api_original_image_model'''))
 patch('smali/edb.smali',lambda s:method_entry(s,'.method public final a(Lqcb;Lncb;)Lddb;', '''    invoke-static/range {p1 .. p1}, LApiSpeech;->request(Ljava/lang/Object;)Ljava/lang/Object;
     move-result-object v0
     check-cast v0, Lqcb;
@@ -111,9 +116,11 @@ def personal_footer(source):
 patch('smali_classes3/u48.smali',personal_footer)
 
 classes=ROOT/'native-classes';classes.mkdir(exist_ok=True)
-run(['javac','-encoding','UTF-8','-source','8','-target','8','-Xlint:-options','-classpath',ANDROID,'-d',classes,*sorted((ROOT/'native-src').glob('*.java'))])
+local=ROOT/'local-model';ort=local/'classes.jar'
+assert ort.exists() and (local/'model-manifest.json').exists(),'Run prepare_local_model.py first'
+run(['javac','-encoding','UTF-8','-source','8','-target','8','-Xlint:-options','-classpath',str(ANDROID)+os.pathsep+str(ort),'-d',classes,*sorted((ROOT/'native-src').glob('*.java'))])
 dex=ROOT/'native-dex';dex.mkdir(exist_ok=True)
-run([BT/'d8.bat','--release','--min-api','24','--lib',ANDROID,'--output',dex,*sorted(classes.glob('*.class'))])
+run([BT/'d8.bat','--release','--min-api','24','--lib',ANDROID,'--output',dex,ort,*sorted(classes.glob('*.class'))])
 compiled=ROOT/'smali-dex';compiled.mkdir(exist_ok=True)
 for folder,name in [('smali','classes.dex'),('smali_classes3','classes3.dex')]:
     target=compiled/name
@@ -137,6 +144,12 @@ with zipfile.ZipFile(ORIGINAL) as source,zipfile.ZipFile(combined,'w',compressio
         replacement=compiled/item.filename
         target.writestr(item,replacement.read_bytes() if item.filename in ['classes.dex','classes3.dex'] else source.read(item.filename))
     target.write(dex/'classes.dex','classes4.dex')
+    for name in ['bge-small-zh-int8.onnx','model-manifest.json']:
+        target.write(local/name,'assets/personal-memory/'+name)
+    target.write(local/'source/vocab.txt','assets/personal-memory/vocab.txt')
+    target.write(local/'THIRD-PARTY-NOTICES.txt','assets/personal-memory/THIRD-PARTY-NOTICES.txt')
+    for name in ['libonnxruntime.so','libonnxruntime4j_jni.so']:
+        target.write(local/'jni/arm64-v8a'/name,'lib/arm64-v8a/'+name,compress_type=zipfile.ZIP_STORED)
 aligned=ROOT/'native-aligned-unsigned.apk'
 run([BT/'zipalign.exe','-P','16','-f','4',combined,aligned])
 signing=ROOT/'.signing';signing.mkdir(exist_ok=True)

@@ -34,10 +34,10 @@ public final class ApiSupport {
     static String userError(Exception e,String fallback){return e instanceof KeyFormatException||e instanceof ApiFailure?e.getMessage():fallback;}
     public static void init(Context context) {
         app = context.getApplicationContext();
-        if (context instanceof Activity) activity = new WeakReference<>((Activity) context);
+        if (context instanceof Activity) {activity = new WeakReference<>((Activity) context);ApiMemory.start();}
     }
     static SharedPreferences prefs() { return app.getSharedPreferences("personal_api_mode", Context.MODE_PRIVATE); }
-    static boolean enabled() { return app != null && prefs().getBoolean("enabled", false) && !key().isEmpty(); }
+    static boolean enabled() { return app != null && prefs().getBoolean("enabled", false) && !ApiProfiles.active().key.isEmpty(); }
     static javax.crypto.SecretKey secret() throws Exception {
         KeyStore store = KeyStore.getInstance("AndroidKeyStore"); store.load(null);
         if (!store.containsAlias(ALIAS)) {
@@ -49,15 +49,24 @@ public final class ApiSupport {
         return (javax.crypto.SecretKey) store.getKey(ALIAS, null);
     }
     static void saveKey(String value) throws Exception {
+        saveSecret("key",value);
+        if(!prefs().edit().putBoolean("enabled",true).putBoolean("custom_active",false).commit())throw new IOException("无法保存接口配置");
+    }
+    static void saveSecret(String slot,String value) throws Exception {
+        String stored=encryptSecret(value);
+        if(!prefs().edit().putString(slot,stored).commit())throw new IOException("无法保存 API Key");
+    }
+    static String encryptSecret(String value)throws Exception{
         value=normalizeKey(value);
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding"); cipher.init(Cipher.ENCRYPT_MODE, secret());
         String stored = Base64.encodeToString(cipher.getIV(), Base64.NO_WRAP) + "." +
             Base64.encodeToString(cipher.doFinal(value.getBytes(StandardCharsets.UTF_8)), Base64.NO_WRAP);
-        if (!prefs().edit().putString("key", stored).putBoolean("enabled", true).commit()) throw new IOException("无法保存 API Key");
+        return stored;
     }
-    static String key() {
+    static String key() {return readSecret("key");}
+    static String readSecret(String slot) {
         try {
-            String[] pieces = prefs().getString("key", "").split("\\.");
+            String[] pieces = prefs().getString(slot, "").split("\\.");
             if (pieces.length != 2) return "";
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(Cipher.DECRYPT_MODE, secret(), new GCMParameterSpec(128, Base64.decode(pieces[0], Base64.NO_WRAP)));

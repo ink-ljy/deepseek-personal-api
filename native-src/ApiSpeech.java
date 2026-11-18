@@ -87,6 +87,7 @@ public final class ApiSpeech {
     }
     static void stream(Object request,Object collector,Object continuation,Run run)throws Exception {
         byte[] body=payload(text(request,continuation)).toString().getBytes(StandardCharsets.UTF_8);
+        if(ApiProfiles.active().custom){ApiSupport.notice("自定义聊天接口未配置语音服务，请切回 DeepSeek 官方接口使用朗读。");throw new IOException("Custom chat endpoint has no configured speech service");}
         HttpURLConnection connection=ApiSupport.connection("/v1/tools/tts","POST",ApiSupport.key());
         run.connection=connection;checkActive(continuation);
         ScheduledExecutorService watcher=Executors.newSingleThreadScheduledExecutor();

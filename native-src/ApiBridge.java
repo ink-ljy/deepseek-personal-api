@@ -189,7 +189,7 @@ public final class ApiBridge {
     static final class Run implements Runnable {
         final String id,path;final JSONObject request,session;final ApiEventStream events=new ApiEventStream();volatile boolean cancelled;volatile HttpURLConnection connection;
         JSONObject assistant;int userId;volatile int answerId;Integer parent;JSONArray blocks=new JSONArray();JSONArray fragments=new JSONArray();Map<Integer,JSONObject> apiBlocks=new TreeMap<>();Map<Integer,StringBuilder> inputs=new HashMap<>();
-        Map<Integer,Integer> fragmentIndexes=new HashMap<>();String title,contextSummary;JSONObject usage=new JSONObject();boolean complete,refusal;long lastEmit,lastSave;int retryCount,httpCode;
+        Map<Integer,Integer> fragmentIndexes=new HashMap<>();String title,contextSummary,memories="";ApiProfiles.Config profile;JSONObject usage=new JSONObject();boolean complete,refusal;long lastEmit,lastSave;int retryCount,httpCode;
         Run(String id,String path,JSONObject request,JSONObject session){this.id=id;this.path=path;this.request=request;this.session=session;}
         void stop(){cancelled=true;HttpURLConnection c=connection;if(c!=null)c.disconnect();}
         void event(String name,JSONObject data) throws Exception {events.event(name,data,assistant);}
@@ -221,7 +221,7 @@ public final class ApiBridge {
                     JSONObject old=records.optJSONObject(Integer.toString(request.optInt("message_id")));if(old!=null){JSONObject m=old.getJSONObject("native");parent=m.isNull("parent_id")?null:m.getInt("parent_id");}
                 }
                 if(prompt.isEmpty()&&request.optJSONArray("ref_file_ids")==null)throw new IOException("请输入消息内容。");
-                Object userContent=files!=null&&files.length()>0?ApiFiles.content(prompt,files):prompt;
+                Object userContent=ApiMemory.augment(files!=null&&files.length()>0?ApiFiles.content(prompt,files):prompt,memories);
                 blocks=ApiContext.messages(session,parent);contextSummary=ApiContext.summary(session,parent);blocks.put(ApiSupport.obj("role","user","content",userContent));
                 int max=0;Iterator<String> names=records.keys();while(names.hasNext())max=Math.max(max,Integer.parseInt(names.next()));max=Math.max(max,parent==null?0:parent);userId=max+1;answerId=max+2;
                 JSONArray uf=new JSONArray().put(ApiSupport.obj("type","REQUEST","id",1,"content",prompt));
@@ -251,10 +251,13 @@ public final class ApiBridge {
         public void run(){
             String failure=null;
             try{
-                prepare();if(cancelled)return;JSONObject payload=ApiSupport.obj("model","deepseek-flash","max_tokens",16384,"thinking",ApiSupport.obj("type",request.optBoolean("thinking_enabled")?"enabled":"disabled"),"messages",blocks,"stream",true,"safety_check",ApiSupport.obj("level","high"),"title",ApiSupport.obj("enabled",true));
-                if(contextSummary!=null)payload.put("system",ApiContext.system(contextSummary));
+                profile=ApiProfiles.active();if(path.endsWith("/completion")||path.endsWith("/edit_message"))memories=ApiMemory.retrieve(request.optString("prompt",""),id);
+                prepare();if(cancelled)return;String system=ApiProfiles.system(contextSummary);
+                if(profile.custom){ApiProfiles.stream(this,profile,system);if(complete&&!cancelled&&!refusal)ApiMemory.completed(this);return;}
+                JSONObject payload=ApiSupport.obj("model","deepseek-flash","max_tokens",16384,"thinking",ApiSupport.obj("type",request.optBoolean("thinking_enabled")?"enabled":"disabled"),"messages",blocks,"stream",true,"safety_check",ApiSupport.obj("level","high"),"title",ApiSupport.obj("enabled",true));
+                if(!system.isEmpty())payload.put("system",system);
                 if(request.optBoolean("search_enabled"))payload.put("tools",new JSONArray().put(ApiSupport.obj("type","deepseek_web_search","name","deepseek_web_search")).put(ApiSupport.obj("type","deepseek_read_url","name","deepseek_read_url")));
-                connection=ApiSupport.connection("/anthropic/v1/messages","POST",ApiSupport.key());connection.setDoOutput(true);connection.setRequestProperty("Content-Type","application/json");connection.setRequestProperty("Accept","text/event-stream");connection.setRequestProperty("anthropic-beta","files-api-2025-04-14");
+                connection=ApiSupport.connection("/anthropic/v1/messages","POST",profile.key);connection.setDoOutput(true);connection.setRequestProperty("Content-Type","application/json");connection.setRequestProperty("Accept","text/event-stream");connection.setRequestProperty("anthropic-beta","files-api-2025-04-14");
                 connection.setReadTimeout(300000);byte[] bytes=payload.toString().getBytes(StandardCharsets.UTF_8);connection.setFixedLengthStreamingMode(bytes.length);
                 if(cancelled)return;try(OutputStream out=connection.getOutputStream()){out.write(bytes);}
                 httpCode=connection.getResponseCode();if(httpCode!=200)throw new IOException(ApiSupport.error(httpCode));
@@ -263,6 +266,7 @@ public final class ApiBridge {
                     if(!cancelled&&!complete&&data.length()>0)consume(new JSONObject(data.toString()));
                 }
                 if(!complete&&!cancelled)throw new IOException("API 流式连接意外中断，请重新生成。");
+                if(complete&&!cancelled&&!refusal)ApiMemory.completed(this);
             }catch(Exception e){if(!cancelled)failure=failure(e);}
             finally{
                 try{

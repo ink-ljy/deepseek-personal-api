@@ -44,26 +44,37 @@
     "about_system_back": true,
     "native_chat_actions_context_badge": true,
     "context_compress_restore_fixture": true,
-    "context_native_back_and_system_back": true
+    "context_native_back_and_system_back": true,
+    "provider_settings_native_page": true,
+    "persona_page_and_native_back": true,
+    "memory_model_page_and_system_back": true,
+    "memory_library_native_toggles": true,
+    "manual_memory_add_dialog_save": true
   },
   "artifact_sha256": {
-    "DeepSeek-2.8.0-PersonalAPI.apk": "3623fe7d276177ccd687a5ec47d1ad70558d9c1d683c3cef0205fc6017d2219c",
-    "DeepSeek-2.8.0-PersonalAPI-Coexist.apk": "63a9fdefea94eefb627df9d6ff92df2e94e540bd170b6fedbb5a59a31f011aea"
+    "DeepSeek-2.8.0-PersonalAPI.apk": "84c0e2a7b25a725c9717e882f43cf63f43436036d9e0427dadfba059968bb497",
+    "DeepSeek-2.8.0-PersonalAPI-Coexist.apk": "07b3d0dcf7000665ed1d2d008f5bff3d7771d8ac28dfc5ae34aba74e61c26fd6"
   },
   "screenshots_sha256": {
     "context-badge-ui5.png": "c4abad7eab5192a8e12bb694b7bd7b656e42b16896ab96f8b3b829075c7f3be3",
     "context-page-ui5.png": "cc676ac9a4f7b01facb3983a88f0fa350b9b817b911bca3addd20c9bd224acb8",
-    "about-ui5.png": "1775405073a57cb157d21dc8bcd45c7330872604904a4a5578eea49a5dadb41c"
+    "about-ui5.png": "1775405073a57cb157d21dc8bcd45c7330872604904a4a5578eea49a5dadb41c",
+    "config-ui5.png": "6f0d2c0c7d0647b4eaa837e39f172bc93bcecdf898ac057eb21d2913048cf84a",
+    "persona-ui5.png": "9198edbad1f602c2d3259d3ac360f11edcead8bdcf9534655f45b0e6556675c7",
+    "memory-model-ui5.png": "8eae0768b6f64622efd2864d5c8fb44035bdd3ab39d5a8b31ee2b1435cf69a9d",
+    "memory-library-ui5.png": "b25f3205d6d7752c3b93563bf6ab535386f10ba9b732900667ad369c6a8e53d2",
+    "memory-added-ui5.png": "a3163d944ed1ebc97b22c65a41a651347ac2e8c5c0fa0e0cb33e9bc8bc4792b9"
   },
   "inherited_UI4_motion_evidence": {
-    "note": "ApiPageDialog source unchanged since UI4; original motion reference/frame review is inherited, not a new phone acceptance",
-    "source_sha256": "c6c3e870d5e66c22cd949f7374ef377dc7d7d5b3fec0c511f8a54770756bf273",
+    "note": "Slide/fade parameters retained from UI4; UI5 adds nested-dialog underlay selection. Prior frame review is inherited, not new phone acceptance.",
+    "source_sha256": "0367c417fd01cc41520a1e8910092f939557ea25bab8f30c9065449e6185f0cd",
     "baseline_source_sha256": "c6c3e870d5e66c22cd949f7374ef377dc7d7d5b3fec0c511f8a54770756bf273"
   },
   "limitations": [
     "chat Actions component hosted by test-only instrumentation; complete logged-in phone chat routing not visually accepted",
     "context and summary screenshots use synthetic fixtures",
     "phone appearance and original motion identity need user acceptance",
-    "private reference video and account screens not published"
+    "private reference video and account screens not published",
+    "Settings screenshots are isolated emulator fixture pages, not the user phone; custom provider form save is covered by protocol/config tests"
   ]
 }

@@ -14,6 +14,7 @@ import android.view.animation.PathInterpolator;
 
 /** Match the original cu7/eh navigation: 1/5-width slide and staggered 105/195 ms fades. */
 public final class ApiPageDialog extends Dialog {
+    private static final java.util.List<java.lang.ref.WeakReference<ApiPageDialog>> pages=new java.util.ArrayList<>();
     private View page,underlay;
     private float underlayAlpha,underlayX,offset;
     private AnimatorSet animation;
@@ -38,8 +39,9 @@ public final class ApiPageDialog extends Dialog {
         Context context=getContext();
         if(context instanceof android.content.ContextWrapper){while(context instanceof android.content.ContextWrapper&&!(context instanceof Activity))context=((android.content.ContextWrapper)context).getBaseContext();}
         if(context instanceof Activity){underlay=((Activity)context).findViewById(android.R.id.content);if(underlay!=null){underlayAlpha=underlay.getAlpha();underlayX=underlay.getTranslationX();}}
+        for(int i=pages.size()-1;i>=0;i--){ApiPageDialog previous=pages.get(i).get();if(previous==null||!previous.isShowing()){pages.remove(i);continue;}if(previous!=this&&previous.page!=null){underlay=previous.page;underlayAlpha=underlay.getAlpha();underlayX=underlay.getTranslationX();break;}}
         if(page!=null)page.setAlpha(animatePage()?0f:1f);
-        super.show();closing=false;
+        super.show();closing=false;pages.add(new java.lang.ref.WeakReference<>(this));
         if(window!=null)window.setLayout(-1,-1);
         if(page!=null&&animatePage())page.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener(){public boolean onPreDraw(){page.getViewTreeObserver().removeOnPreDrawListener(this);enter();return true;}});
     }
@@ -53,5 +55,5 @@ public final class ApiPageDialog extends Dialog {
         animation.addListener(new AnimatorListenerAdapter(){@Override public void onAnimationEnd(Animator a){animation=null;restoreUnderlay();ApiPageDialog.super.dismiss();}});
         animation.start();
     }
-    @Override protected void onStop(){if(animation!=null){animation.removeAllListeners();animation.cancel();animation=null;}restoreUnderlay();super.onStop();}
+    @Override protected void onStop(){if(animation!=null){animation.removeAllListeners();animation.cancel();animation=null;}restoreUnderlay();for(int i=pages.size()-1;i>=0;i--){ApiPageDialog p=pages.get(i).get();if(p==null||p==this)pages.remove(i);}super.onStop();}
 }

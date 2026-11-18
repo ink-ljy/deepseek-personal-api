@@ -53,7 +53,7 @@ public final class ApiMediaTest {
             t.check((Boolean)t.field(attachment,"k"),"extensionless gallery image classified as image");
             t.check(((Number)t.field(attachment,"m")).intValue()==40&&((Number)t.field(attachment,"n")).intValue()==30,"native image dimensions are preserved");
             t.check(new File(Uri.parse((String)t.field(attachment,"j")).getPath()).isFile(),"native image preview survives original URI grant");
-            String multipart=requests.get(0).body.toString("UTF-8");t.check(!multipart.contains("name=\"purpose\""),"image multipart omits document parsing purpose");
+            String multipart=requests.get(0).body.toString("UTF-8");t.check(multipart.contains("name=\"purpose\"")&&multipart.contains("user_data")&&!multipart.contains("rich_layout_recognition"),"image multipart uses explicit user_data purpose");
             t.check(multipart.contains("Content-Type: image/png"),"multipart sends actual PNG MIME");
             t.check("files-api-2025-04-14".equals(requests.get(0).getRequestProperty("anthropic-beta")),"Files API beta header is present");
             JSONArray content=(JSONArray)t.call(t.c("ApiFiles"),"content","Look",new JSONArray().put(id));t.check(content.getJSONObject(1).getString("type").equals("image")&&content.getJSONObject(1).getJSONObject("source").getString("file_id").equals(id),"chat sends image source file_id to Messages API");

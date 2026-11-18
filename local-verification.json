@@ -1,0 +1,63 @@
+{
+  "version": "UI5",
+  "date": "2026-11-18",
+  "result": "PASS",
+  "environment": "isolated read-only Android 36 emulator",
+  "transport": "REAL bundled INT8 ONNX CPU inference in Android emulator; no API keys or network embedding substitute",
+  "checks_count": 13,
+  "checks": [
+    "Android WordPiece matches pinned reference case 0\r",
+    "Android INT8 encoder agrees with desktop ONNX reference case 0\r",
+    "Android WordPiece matches pinned reference case 1\r",
+    "Android INT8 encoder agrees with desktop ONNX reference case 1\r",
+    "Android WordPiece matches pinned reference case 2\r",
+    "Android INT8 encoder agrees with desktop ONNX reference case 2\r",
+    "Android WordPiece matches pinned reference case 3\r",
+    "Android INT8 encoder agrees with desktop ONNX reference case 3\r",
+    "Android WordPiece matches pinned reference case 4\r",
+    "Android INT8 encoder agrees with desktop ONNX reference case 4\r",
+    "real Chinese semantic retrieval ranks preference memory above rocket engineering\r",
+    "default offline memory creates and retrieves real vectors without any endpoint key\r",
+    "deleting offline memory removes it from subsequent retrieval\r"
+  ],
+  "artifact_sha256": {
+    "DeepSeek-2.8.0-PersonalAPI.apk": "84c0e2a7b25a725c9717e882f43cf63f43436036d9e0427dadfba059968bb497",
+    "DeepSeek-2.8.0-PersonalAPI-Coexist.apk": "07b3d0dcf7000665ed1d2d008f5bff3d7771d8ac28dfc5ae34aba74e61c26fd6"
+  },
+  "test_source_sha256": {
+    "ApiLocalTest.java": "2dfc1c240a151b21922e4f480a59c94eeed5c17dda1b068ab0ffb0abbf26347c",
+    "ApiSelfTest.java": "dfce6b6073a97574c7a6438b35794d7a3de25da0cb29418a2d46432b15c636e0"
+  },
+  "model": {
+    "model": "BAAI/bge-small-zh-v1.5",
+    "revision": "7999e1d3359715c523056ef9478215996d62a620",
+    "license": "MIT",
+    "parameters": 23953920,
+    "dimensions": 512,
+    "max_tokens": 512,
+    "quantization": "dynamic INT8 MatMul and Gather",
+    "onnxruntime_android": "1.24.3",
+    "quantized_bytes": 24012525,
+    "sha256": "fb98bb56fe5d61b7ddf05dd6223b709527e47aa1d06568fd2c9ebb49cf1f463e",
+    "vocab_sha256": "45bbac6b341c319adc98a532532882e91a9cefc0329aa57bac9ae761c27b291c",
+    "fp32_int8_cosine": [
+      0.9941812753677368,
+      0.9930524826049805,
+      0.9937311410903931
+    ],
+    "semantic_related": 0.5744026303291321,
+    "semantic_unrelated": 0.4074805676937103,
+    "environment": {
+      "torch": "2.5.1+cu121",
+      "transformers": "4.48.3",
+      "onnxruntime": "1.27.0"
+    },
+    "per_channel": true,
+    "runtime_aar_sha256": "67397e4a970e75617f765d2015ceaf911917e1d822276cfb5792744e8085cbce"
+  },
+  "reference_fixtures_sha256": "eece208ca2a2e84d56801caf62e874b9a39d5107a324ee440dc407c325a5774c",
+  "unverified": [
+    "broad semantic retrieval quality",
+    "physical phone speed, memory and battery impact"
+  ]
+}

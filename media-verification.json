@@ -13,7 +13,7 @@
     "extensionless gallery image classified as image\r",
     "native image dimensions are preserved\r",
     "native image preview survives original URI grant\r",
-    "image multipart omits document parsing purpose\r",
+    "image multipart uses explicit user_data purpose\r",
     "multipart sends actual PNG MIME\r",
     "Files API beta header is present\r",
     "chat sends image source file_id to Messages API\r",
@@ -37,12 +37,12 @@
     "API disabled preserves original voice route\r"
   ],
   "artifact_sha256": {
-    "DeepSeek-2.8.0-PersonalAPI.apk": "3623fe7d276177ccd687a5ec47d1ad70558d9c1d683c3cef0205fc6017d2219c",
-    "DeepSeek-2.8.0-PersonalAPI-Coexist.apk": "63a9fdefea94eefb627df9d6ff92df2e94e540bd170b6fedbb5a59a31f011aea"
+    "DeepSeek-2.8.0-PersonalAPI.apk": "84c0e2a7b25a725c9717e882f43cf63f43436036d9e0427dadfba059968bb497",
+    "DeepSeek-2.8.0-PersonalAPI-Coexist.apk": "07b3d0dcf7000665ed1d2d008f5bff3d7771d8ac28dfc5ae34aba74e61c26fd6"
   },
   "test_source_sha256": {
-    "ApiMediaTest.java": "2a3c95440765eac7ac01065ad42dd0422d674725c224fa59844362fbdff5f484",
-    "ApiSelfTest.java": "b2701e06692514cc230b6c687ab8a63bff741f3746a537bbef34574d54b97df1"
+    "ApiMediaTest.java": "7cfe221c52867544bab30f1a9ee30cb02aa2e1ad8be4ba7a7bb0e01f88aa4c85",
+    "ApiSelfTest.java": "dfce6b6073a97574c7a6438b35794d7a3de25da0cb29418a2d46432b15c636e0"
   },
   "unverified": [
     "real TTS synthesis and audible phone playback",

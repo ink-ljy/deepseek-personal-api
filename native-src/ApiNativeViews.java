@@ -68,13 +68,16 @@ public final class ApiNativeViews {
         return container;
     }
     static Content toggle(Supplier<Boolean> checked,Consumer<Boolean> change)throws Exception {
+        return toggle("使用 API 额度",checked,change);
+    }
+    static Content toggle(String caption,Supplier<Boolean> checked,Consumer<Boolean> change)throws Exception {
         return composer->{
             Object scheme=ApiSupport.call(composer,"j",ApiSupport.field(ApiSupport.cls("g1b"),"c"));
             Object changed=callback("xy4",(p,m,a)->{if(m.getName().equals("j")){change.accept((Boolean)a[0]);return ApiSupport.unit();}return ApiUi.proxyObject(p,m,a);});
             // Same trailing content lambda and green/white switch used by Data Controls.
-            Object toggle=ApiSupport.make("tq",checked.get(),scheme,"使用 API 额度",changed,21,false);
+            Object toggle=ApiSupport.make("tq",checked.get(),scheme,caption,changed,21,false);
             Object trailing=content(c->ApiSupport.call(toggle,"q",c,0));
-            ApiSupport.call(ApiSupport.cls("py9"),"b",null,null,false,false,0L,null,trailing,null,0f,label("使用 API 额度"),composer,0,447);
+            ApiSupport.call(ApiSupport.cls("py9"),"b",null,null,false,false,0L,null,trailing,null,0f,label(caption),composer,0,447);
         };
     }
 }

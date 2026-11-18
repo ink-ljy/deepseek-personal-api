@@ -1,0 +1,54 @@
+{
+  "version": "UI5",
+  "date": "2026-11-18",
+  "result": "PASS",
+  "environment": "isolated read-only Android 36 emulator",
+  "transport": "deterministic HTTPS fixtures; no live API credentials, billing, or real phone network",
+  "checks_count": 32,
+  "checks": [
+    "custom base URL is canonicalized without losing v1 path\r",
+    "unsafe or ambiguous base URLs are rejected\r",
+    "custom chat profile becomes active with model and token limits\r",
+    "official and custom chat keys stay in separate encrypted slots\r",
+    "changed endpoint cannot reuse an existing key and failed save is atomic\r",
+    "separate embedding endpoint creates vectors and retrieves cross-session memory\r",
+    "current-session memory is excluded from duplicate retrieval\r",
+    "cosine threshold excludes unrelated memory fixture\r",
+    "editing memory replaces both text and vector index\r",
+    "custom OpenAI SSE maps into original native answer and terminal status\r",
+    "chat request uses only the configured endpoint key and model route\r",
+    "persona is system content and DeepSeek-specific extensions are omitted for compatible providers\r",
+    "retrieved memory is attached to current user message\r",
+    "native chat bubble preserves the original user text\r",
+    "OpenAI usage is normalized without counting cache hits twice\r",
+    "memory edits do not rewrite prior message prefixes\r",
+    "deleted memory is excluded from subsequent retrieval\r",
+    "custom image is prepared locally without sending key to DeepSeek Files API\r",
+    "custom image bytes are encoded in compatible image_url content\r",
+    "completed API round auto-updates memory without storing reasoning\r",
+    "endpoint-scoped credential fixture 0\r",
+    "endpoint-scoped credential fixture 1\r",
+    "endpoint-scoped credential fixture 2\r",
+    "endpoint-scoped credential fixture 3\r",
+    "endpoint-scoped credential fixture 4\r",
+    "endpoint-scoped credential fixture 5\r",
+    "endpoint-scoped credential fixture 6\r",
+    "endpoint-scoped credential fixture 7\r",
+    "endpoint-scoped credential fixture 8\r",
+    "endpoint-scoped credential fixture 9\r",
+    "embedding failure degrades to ordinary chat without leaking provider response\r",
+    "switching back restores official key instead of custom key\r"
+  ],
+  "artifact_sha256": {
+    "DeepSeek-2.8.0-PersonalAPI.apk": "84c0e2a7b25a725c9717e882f43cf63f43436036d9e0427dadfba059968bb497",
+    "DeepSeek-2.8.0-PersonalAPI-Coexist.apk": "07b3d0dcf7000665ed1d2d008f5bff3d7771d8ac28dfc5ae34aba74e61c26fd6"
+  },
+  "test_source_sha256": {
+    "ApiFeaturesTest.java": "d90d11be79e1f2afd4c10e02c2ebba799b80665198092ffefbf581ce2b8cc22b",
+    "ApiSelfTest.java": "dfce6b6073a97574c7a6438b35794d7a3de25da0cb29418a2d46432b15c636e0"
+  },
+  "unverified": [
+    "individual third-party providers and their visual model compatibility"
+  ],
+  "scope": "Custom endpoint transport, system persona, memory editing and auto-indexing, image payload, scoped credentials; remote embeddings use deterministic fixture vectors"
+}

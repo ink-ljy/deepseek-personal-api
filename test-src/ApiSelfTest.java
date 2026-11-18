@@ -80,15 +80,19 @@ public final class ApiSelfTest extends Instrumentation {
     public void onStart(){Bundle result=new Bundle();try{
         loader=getTargetContext().getClassLoader();call(c("ApiSupport"),"init",getTargetContext());
         String mode=args.getString("mode","protocol");
+        if(!mode.equals("local")&&!mode.equals("features")){Object ed=call(call(c("ApiSupport"),"prefs"),"edit");call(ed,"putBoolean","memory_auto",false);call(ed,"putBoolean","memory_enabled",false);call(ed,"putString","persona","");call(ed,"commit");}
         if(mode.equals("media")){ApiMediaTest.run(this);}
+        else if(mode.equals("features")){ApiFeaturesTest.run(this);}
+        else if(mode.equals("local")){ApiLocalTest.run(this);}
         else if(mode.equals("stream")){ApiStreamTest.run(this);}
         else if(mode.equals("context")){ApiContextTest.run(this);}
         else if(mode.equals("key")){ApiKeyTest.run(this);}
-        else if(mode.equals("quota")||mode.equals("settings")||mode.equals("about")||mode.equals("footer")||mode.equals("contextui")){
+        else if(mode.equals("handover")){ApiImageHandoverTest.run(this);}
+        else if(mode.equals("quota")||mode.equals("settings")||mode.equals("about")||mode.equals("footer")||mode.equals("contextui")||mode.equals("configui")){
             if(mode.equals("contextui")){ApiContextTest.transport();ApiContextTest.next=ApiContextTest.summary(this,"User goals, confirmed facts, exact numbers and remaining work are preserved in this test summary.","end_turn");call(c("ApiSupport"),"saveKey","local-ui-fixture-no-network");JSONObject seed=ApiContextTest.seed(this,"context-ui-"+System.nanoTime(),3);seed.getJSONObject("messages").getJSONObject("6").put("api_usage",json("input_tokens",900,"cache_read_input_tokens",5100,"output_tokens",1200));}
             Intent launch=getTargetContext().getPackageManager().getLaunchIntentForPackage("com.deepseek.chat");launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);Activity activity=startActivitySync(launch);call(c("ApiSupport"),"init",activity);
-            runOnMainSync(()->{try{if(mode.equals("quota"))call(c("ApiUi"),"open",activity);else if(mode.equals("about"))call(c("ApiUi"),"openAbout",activity);else{android.view.View view=(android.view.View)make("androidx.compose.ui.platform.ComposeView",activity);call(view,"setContent",compose(0));activity.setContentView(view);}}catch(Exception e){throw new RuntimeException(e);}});Thread.sleep(1000);check(true,"native "+mode+" screen opened");
-            if(args.getString("hold","false").equals("true"))Thread.sleep(45000);
+            runOnMainSync(()->{try{if(mode.equals("configui"))call(c("ApiSettings"),"open");else if(mode.equals("quota"))call(c("ApiUi"),"open",activity);else if(mode.equals("about"))call(c("ApiUi"),"openAbout",activity);else{android.view.View view=(android.view.View)make("androidx.compose.ui.platform.ComposeView",activity);call(view,"setContent",compose(0));activity.setContentView(view);}}catch(Exception e){throw new RuntimeException(e);}});Thread.sleep(1000);check(true,"native "+mode+" screen opened");
+            if(args.getString("hold","false").equals("true"))Thread.sleep(Long.parseLong(args.getString("hold_ms","45000")));
             if(mode.equals("contextui")){Object editor=call(call(c("ApiSupport"),"prefs"),"edit");call(editor,"remove","key");call(editor,"putBoolean","enabled",false);call(editor,"commit");}
         }else{
             String key=read(new FileInputStream("/data/local/tmp/deepseek-personal-api-test.key")).trim();call(c("ApiSupport"),"saveKey",key);check((Boolean)call(c("ApiSupport"),"enabled"),"API key stored and mode enabled");
