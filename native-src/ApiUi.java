@@ -124,7 +124,7 @@ public final class ApiUi {
             root.addView(ApiNativeViews.header(activity,"关于 DeepSeek API",d::dismiss),new LinearLayout.LayoutParams(-1,-2));
             ScrollView scroll=new ScrollView(c);scroll.setVerticalScrollBarEnabled(false);LinearLayout body=column(c);body.setPadding(dp(c,16),dp(c,28),dp(c,16),dp(c,24));scroll.addView(body);root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
             ImageView logo=new ImageView(c);logo.setImageDrawable(c.getPackageManager().getApplicationIcon(c.getApplicationInfo()));LinearLayout.LayoutParams logoSize=new LinearLayout.LayoutParams(dp(c,64),dp(c,64));logoSize.gravity=Gravity.CENTER_HORIZONTAL;body.addView(logo,logoSize);gap(body,16);
-            TextView name=text(c,"DeepSeek API",20,fg);name.setGravity(Gravity.CENTER);body.addView(name);gap(body,8);TextView version=text(c,"2.8.0 · 个人 API 版 UI4",14,muted);version.setGravity(Gravity.CENTER);body.addView(version);gap(body,32);
+            TextView name=text(c,"DeepSeek API",20,fg);name.setGravity(Gravity.CENTER);body.addView(name);gap(body,8);TextView version=text(c,"2.8.0 · 个人 API 版 UI5",14,muted);version.setGravity(Gravity.CENTER);body.addView(version);gap(body,32);
             LinearLayout cardView=column(c);cardView.setPadding(dp(c,16),dp(c,16),dp(c,16),dp(c,16));cardView.setBackground(background(card,16,c));body.addView(cardView);
             cardView.addView(text(c,"原应用：DeepSeek",16,fg));gap(cardView,12);
             cardView.addView(text(c,"基于 DeepSeek 原版应用重构，支持使用个人 API 额度（个人修改版，非官方发布）。",16,fg));

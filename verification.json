@@ -4,8 +4,8 @@
   "artifacts": [
     {
       "file": "DeepSeek-2.8.0-PersonalAPI.apk",
-      "sha256": "5887ed0fa658fe140f4a0a729b35f46920cbf27fa2a2cf60f313f429a4d3827f",
-      "bytes": 23110993,
+      "sha256": "d8009e2000825370e4f7c1e9b71fa535353a57c119661ecd0af8550086154f0a",
+      "bytes": 23123281,
       "original_resource_entries_unchanged": 877,
       "temporary_key_embedded": false,
       "test_helper_embedded": false,
@@ -17,8 +17,8 @@
     },
     {
       "file": "DeepSeek-2.8.0-PersonalAPI-Coexist.apk",
-      "sha256": "350e51f4246e5ea617ce74446f176b6d809c67535de2e71271333aa364b2561f",
-      "bytes": 23110993,
+      "sha256": "86f2568d8c984d49b1925fe854bc4749532173535989ea31fd15f9d2a2679eb0",
+      "bytes": 23123281,
       "original_resource_entries_unchanged": 877,
       "temporary_key_embedded": false,
       "test_helper_embedded": false,

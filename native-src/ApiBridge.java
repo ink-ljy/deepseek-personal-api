@@ -12,8 +12,8 @@ import org.json.*;
 /** Adapts public Messages API SSE to the original app's native ready/delta/finish protocol. */
 public final class ApiBridge {
     private static final Map<String,JSONObject> sessions=new ConcurrentHashMap<>();
-    private static final Map<String,Run> running=new ConcurrentHashMap<>();
-    private static final Object storeLock=new Object();
+    static final Map<String,Run> running=new ConcurrentHashMap<>();
+    static final Object storeLock=new Object();
 
     public static Object pow() {
         if(!ApiSupport.enabled())return null;
@@ -36,14 +36,14 @@ public final class ApiBridge {
     /** Captures the exact native branch and attachment metadata before a request, without changing the UI. */
     public static void cacheSession(Object nativeSession) {
         if(!ApiSupport.enabled())return;
-        try{synchronized(storeLock){String id=(String)ApiSupport.field(nativeSession,"a");JSONObject s=session(id);JSONObject records=s.getJSONObject("messages");
-            s.put("inserted_at",ApiSupport.field(nativeSession,"b"));s.put("updated_at",ApiSupport.field(nativeSession,"c"));
-            s.put("title",ApiSupport.call(ApiSupport.field(nativeSession,"g"),"getValue"));
+        try{synchronized(storeLock){String id=(String)ApiSupport.field(nativeSession,"a");ApiContext.select(id);JSONObject s=session(id);JSONObject records=s.getJSONObject("messages");
+            if(!s.optBoolean("owned")){s.put("inserted_at",ApiSupport.field(nativeSession,"b"));s.put("updated_at",ApiSupport.field(nativeSession,"c"));s.put("title",ApiSupport.call(ApiSupport.field(nativeSession,"g"),"getValue"));}
             Map<?,?> nativeMessages=(Map<?,?>)ApiSupport.field(nativeSession,"f");
             Object codec=ApiSupport.field(ApiSupport.cls("o56"),"a"),serializer=ApiSupport.field(ApiSupport.cls("gy"),"a");
             for(Object m:nativeMessages.values()){
                 int mid=((Number)ApiSupport.call(m,"w")).intValue();if(mid<0)continue;
                 JSONObject record=records.optJSONObject(Integer.toString(mid));if(record==null)record=new JSONObject();
+                if(s.optBoolean("owned")&&record.has("native"))continue;
                 Object staticMessage=ApiSupport.call(m,"a");String json=(String)ApiSupport.call(codec,"c",serializer,staticMessage);
                 record.put("native",new JSONObject(json));records.put(Integer.toString(mid),record);
             }
@@ -56,13 +56,22 @@ public final class ApiBridge {
         String path=uri.getPath();boolean enabled=ApiSupport.enabled();
         if(path.equals("/api/v0/chat/history_messages")){
             String id=uri.getQueryParameter("chat_session_id");if(id==null)return null;
-            JSONObject s=session(id);if(!s.optBoolean("owned"))return null;
+            ApiContext.select(id);JSONObject s=session(id);if(!s.optBoolean("owned"))return null;
             return jsonResponse(request,history(s));
         }
         if(path.equals("/api/v0/chat_session/fetch_page"))return sessionPage(request,uri);
+        if(path.equals("/api/v0/chat/resume_stream")){
+            JSONObject data=body(request);JSONObject s=session(data.getString("chat_session_id"));
+            if(s.optBoolean("owned"))return resume(request,data,s);
+        }
+        if(path.equals("/api/v0/chat/stop_stream")){
+            JSONObject data=body(request);String sid=data.optString("chat_session_id");Run r=running.get(sid);
+            if(r!=null){r.stop();return jsonResponse(request,envelope(new JSONObject()));}
+            if(!sid.isEmpty()&&session(sid).optBoolean("owned"))return jsonResponse(request,envelope(new JSONObject()));
+        }
         if(!enabled)return null;
         if(path.equals("/api/v0/chat_session/create")){
-            JSONObject s=session(UUID.randomUUID().toString());s.put("owned",true);save(s);
+            JSONObject s=session(UUID.randomUUID().toString());s.put("owned",true);save(s);ApiContext.select(s.getString("id"));
             return jsonResponse(request,envelope(ApiSupport.obj("chat_session",metadata(s),"ttl_seconds",86400)));
         }
         if(path.startsWith("/api/v0/chat_session/")){
@@ -76,20 +85,33 @@ public final class ApiBridge {
             }
             if(path.endsWith("/delete_all")){for(JSONObject s:localSessions()){s.put("deleted",true);save(s);}return null;}
         }
-        if(path.equals("/api/v0/chat/stop_stream")){
-            JSONObject data=body(request);Run r=running.get(data.optString("chat_session_id"));if(r!=null)r.stop();
-            return jsonResponse(request,envelope(new JSONObject()));
-        }
         boolean chat=path.equals("/api/v0/chat/completion")||path.equals("/api/v0/chat/edit_message")||path.equals("/api/v0/chat/regenerate")||path.equals("/api/v0/chat/continue")||path.equals("/api/v0/chat/resume_stream");
         if(!chat)return null;
         JSONObject data=body(request);String id=data.getString("chat_session_id");JSONObject s=session(id);
-        Run run=new Run(id,path,data,s);Run old=running.putIfAbsent(id,run);
-        if(old!=null)throw new IOException("当前对话正在生成，请先停止后重试。");
-        try{
-            PipedInputStream input=new PipedInputStream(131072);PipedOutputStream output=new PipedOutputStream(input);run.output=output;
-            Object response=response(request,input,"text/event-stream; charset=utf-8",run);
-            new Thread(run,"PersonalApiStream").start();return response;
-        }catch(Exception e){running.remove(id,run);throw e;}
+        return launch(request,new Run(id,path,data,s));
+    }
+    static Object launch(Object request,Run run)throws Exception{
+        synchronized(storeLock){if(ApiContext.busy(run.id))throw new IOException("上下文正在压缩，请等待完成后发送。");Run old=running.putIfAbsent(run.id,run);if(old!=null)throw new IOException("当前对话正在生成，请先停止后重试。");}
+        ApiContext.select(run.id);
+        try{Object response=response(request,run.events.open(),"text/event-stream; charset=utf-8",null);new Thread(run,"PersonalApiStream").start();return response;}
+        catch(Exception e){running.remove(run.id,run);throw e;}
+    }
+    static Object resume(Object request,JSONObject data,JSONObject s)throws Exception{
+        String id=s.getString("id");int mid=data.getInt("message_id");Run active=running.get(id);
+        if(active!=null&&active.answerId==mid)return response(request,active.events.open(),"text/event-stream; charset=utf-8",null);
+        JSONObject record;JSONObject message;
+        synchronized(storeLock){record=s.getJSONObject("messages").optJSONObject(Integer.toString(mid));if(record==null)throw new IOException("未找到这条本地回答，请重新打开对话。");message=record.getJSONObject("native");}
+        String status=message.optString("status");
+        if(active==null&&ApiSupport.enabled()&&!status.equals("FINISHED")&&!record.optBoolean("stopped")&&record.optBoolean("retryable",true)&&record.optInt("api_retry_count")<1){
+            Run retry=new Run(id,"/api/v0/chat/resume_stream",data,s);
+            try{return launch(request,retry);}catch(IOException race){active=running.get(id);if(active!=null&&active.answerId==mid)return response(request,active.events.open(),"text/event-stream; charset=utf-8",null);throw race;}
+        }
+        ApiEventStream events=new ApiEventStream();
+        if(status.equals("WIP")){message=new JSONObject(message.toString());message.put("status","INCOMPLETE");}
+        events.event("ready",ApiSupport.obj("request_message_id",message.getInt("parent_id"),"response_message_id",mid,"model_type","deepseek-flash"),message);
+        if(status.equals("FAILED"))events.event("toast",ApiSupport.obj("type","error","content",record.optInt("api_retry_count")>=1?"连接再次中断，已保留收到的内容。请使用重新生成重试。":record.optString("failure_message","连接中断，已保留收到的内容。请点击重新生成重试。")),message);
+        events.event("finish",new JSONObject(),message);
+        return response(request,events.open(),"text/event-stream; charset=utf-8",null);
     }
     static JSONObject body(Object request) throws Exception {
         Object body=ApiSupport.field(request,"d");if(body==null)return new JSONObject();
@@ -135,7 +157,7 @@ public final class ApiBridge {
             switch(method.getName()){
                 case "U":long count=((Number)args[0]).longValue();if(count==0)return 0L;byte[] bytes=new byte[(int)Math.min(count,8192)];int n=input.read(bytes);if(n==-1)return -1L;ApiSupport.call(args[1],"E",n,bytes);return (long)n;
                 case "d":return timeout;
-                case "close":if(run!=null)run.stop();input.close();return null;
+                case "close":input.close();return null;
                 default:return ApiUi.proxyObject(proxy,method,args);
             }
         });
@@ -165,16 +187,29 @@ public final class ApiBridge {
         Collections.reverse(chain);JSONArray result=new JSONArray();for(JSONObject m:chain)result.put(m);return result;
     }
     static final class Run implements Runnable {
-        final String id,path;final JSONObject request,session;volatile boolean cancelled;volatile HttpURLConnection connection;PipedOutputStream output;
-        JSONObject assistant;int userId,answerId;Integer parent;JSONArray blocks=new JSONArray();JSONArray fragments=new JSONArray();Map<Integer,JSONObject> apiBlocks=new TreeMap<>();Map<Integer,StringBuilder> inputs=new HashMap<>();
-        Map<Integer,Integer> fragmentIndexes=new HashMap<>();String title;boolean complete,refusal;long lastEmit;
+        final String id,path;final JSONObject request,session;final ApiEventStream events=new ApiEventStream();volatile boolean cancelled;volatile HttpURLConnection connection;
+        JSONObject assistant;int userId;volatile int answerId;Integer parent;JSONArray blocks=new JSONArray();JSONArray fragments=new JSONArray();Map<Integer,JSONObject> apiBlocks=new TreeMap<>();Map<Integer,StringBuilder> inputs=new HashMap<>();
+        Map<Integer,Integer> fragmentIndexes=new HashMap<>();String title,contextSummary;JSONObject usage=new JSONObject();boolean complete,refusal;long lastEmit,lastSave;int retryCount,httpCode;
         Run(String id,String path,JSONObject request,JSONObject session){this.id=id;this.path=path;this.request=request;this.session=session;}
         void stop(){cancelled=true;HttpURLConnection c=connection;if(c!=null)c.disconnect();}
-        void event(String name,JSONObject data) throws Exception {if(name!=null)output.write(("event: "+name+"\n").getBytes(StandardCharsets.UTF_8));output.write(("data: "+data+"\n\n").getBytes(StandardCharsets.UTF_8));output.flush();}
+        void event(String name,JSONObject data) throws Exception {events.event(name,data,assistant);}
         void delta(String path,Object value) throws Exception {event(null,ApiSupport.obj("p",path,"o","SET","v",value));}
         void emitFragments(boolean force) throws Exception {long now=System.currentTimeMillis();if(force||now-lastEmit>=80){delta("response/fragments",fragments);lastEmit=now;}}
         void prepare() throws Exception {
             synchronized(storeLock){JSONObject records=session.getJSONObject("messages");
+                if(path.endsWith("/resume_stream")){
+                    answerId=request.getInt("message_id");JSONObject previous=records.getJSONObject(Integer.toString(answerId));JSONObject old=previous.getJSONObject("native");
+                    if(!old.optString("role").equals("ASSISTANT"))throw new IOException("只能重试回答消息。");
+                    userId=old.getInt("parent_id");JSONObject userRecord=records.getJSONObject(Integer.toString(userId));JSONObject user=userRecord.getJSONObject("native");
+                    parent=user.isNull("parent_id")?null:user.getInt("parent_id");String prompt=text(user);
+                    Object userContent=userRecord.optJSONArray("api_content");if(userContent==null){JSONArray ids=ApiFiles.idsFromNative(user);userContent=ids.length()>0?ApiFiles.content(prompt,ids):prompt;}
+                    blocks=ApiContext.messages(session,parent);contextSummary=ApiContext.summary(session,parent);blocks.put(ApiSupport.obj("role","user","content",userContent));
+                    request.put("thinking_enabled",old.optBoolean("thinking_enabled"));request.put("search_enabled",old.optBoolean("search_enabled"));
+                    retryCount=previous.optInt("api_retry_count")+1;
+                    assistant=nativeMessage(answerId,userId,"ASSISTANT","WIP",fragments,request);session.put("current_message_id",answerId);checkpoint(null);
+                    event("ready",ApiSupport.obj("request_message_id",userId,"response_message_id",answerId,"model_type","deepseek-flash","request_content",prompt));
+                    event(null,ApiSupport.obj("v",ApiSupport.obj("response",assistant)));return;
+                }
                 parent=request.isNull("parent_message_id")?null:request.optInt("parent_message_id");if(parent!=null&&parent<=0)parent=null;
                 String prompt=request.optString("prompt","");JSONArray files=request.optJSONArray("ref_file_ids");
                 if(path.endsWith("/regenerate")||path.endsWith("/continue")){
@@ -184,51 +219,67 @@ public final class ApiBridge {
                     prompt=text(m);parent=m.isNull("parent_id")?null:m.getInt("parent_id");files=ApiFiles.idsFromNative(m);
                 }else if(path.endsWith("/edit_message")){
                     JSONObject old=records.optJSONObject(Integer.toString(request.optInt("message_id")));if(old!=null){JSONObject m=old.getJSONObject("native");parent=m.isNull("parent_id")?null:m.getInt("parent_id");}
-                }else if(path.endsWith("/resume_stream"))throw new IOException("API 请求已中断，请使用原页面的重新生成按钮重试。");
+                }
                 if(prompt.isEmpty()&&request.optJSONArray("ref_file_ids")==null)throw new IOException("请输入消息内容。");
                 Object userContent=files!=null&&files.length()>0?ApiFiles.content(prompt,files):prompt;
-                blocks=context(session,parent);blocks.put(ApiSupport.obj("role","user","content",userContent));
+                blocks=ApiContext.messages(session,parent);contextSummary=ApiContext.summary(session,parent);blocks.put(ApiSupport.obj("role","user","content",userContent));
                 int max=0;Iterator<String> names=records.keys();while(names.hasNext())max=Math.max(max,Integer.parseInt(names.next()));max=Math.max(max,parent==null?0:parent);userId=max+1;answerId=max+2;
                 JSONArray uf=new JSONArray().put(ApiSupport.obj("type","REQUEST","id",1,"content",prompt));
                 if(files!=null&&files.length()>0)uf.put(ApiSupport.obj("type","FILE","id",2,"files",ApiFiles.nativeFiles(files)));
                 JSONObject user=nativeMessage(userId,parent,"USER","FINISHED",uf,request);JSONObject userRecord=ApiSupport.obj("native",user);if(userContent instanceof JSONArray)userRecord.put("api_content",userContent);records.put(Integer.toString(userId),userRecord);
                 assistant=nativeMessage(answerId,userId,"ASSISTANT","WIP",fragments,request);session.put("owned",true);session.put("current_message_id",answerId);session.put("updated_at",System.currentTimeMillis()/1000.0);
                 if(max==0){String clean=prompt.replace('\n',' ');title=clean.substring(0,Math.min(20,clean.length()));}
-                records.put(Integer.toString(answerId),ApiSupport.obj("native",assistant));save(session);
+                records.put(Integer.toString(answerId),ApiSupport.obj("native",new JSONObject(assistant.toString()),"api_retry_count",0));save(session);lastSave=System.currentTimeMillis();
                 event("ready",ApiSupport.obj("request_message_id",userId,"response_message_id",answerId,"model_type","deepseek-flash","request_content",prompt));
                 event(null,ApiSupport.obj("v",ApiSupport.obj("response",assistant)));
             }
+        }
+        void checkpoint(String failure)throws Exception{
+            if(assistant==null)return;assistant.put("fragments",fragments);
+            JSONObject rec=ApiSupport.obj("native",new JSONObject(assistant.toString()),"api_retry_count",retryCount,"stopped",cancelled);
+            if(usage.length()>0)rec.put("api_usage",new JSONObject(usage.toString()));
+            if(failure!=null){rec.put("failure_message",failure);rec.put("failure_kind",httpCode>0&&httpCode!=200?"HTTP_"+httpCode:"TRANSPORT_OR_STREAM");rec.put("retryable",httpCode==0||httpCode==200||httpCode==408||httpCode==429||httpCode>=500);}
+            JSONArray raw=new JSONArray();for(JSONObject b:apiBlocks.values())raw.put(b);if(complete&&!refusal)rec.put("api_content",raw);
+            synchronized(storeLock){session.getJSONObject("messages").put(Integer.toString(answerId),rec);if(title!=null&&!title.isEmpty())session.put("title",title);session.put("updated_at",System.currentTimeMillis()/1000.0);save(session);}lastSave=System.currentTimeMillis();ApiContextUi.changed();
+        }
+        String failure(Exception e){
+            if(httpCode!=0&&httpCode!=200)return ApiSupport.error(httpCode);
+            if(e instanceof java.net.SocketTimeoutException)return "API 连接等待超时，已保留收到的内容。可点击重试；仍失败时请重新生成。";
+            if(e instanceof IOException)return "API 连接中断，已保留收到的内容。可点击重试；仍失败时请重新生成。";
+            return "API 响应处理失败，已保留收到的内容，请重新生成。";
         }
         public void run(){
             String failure=null;
             try{
                 prepare();if(cancelled)return;JSONObject payload=ApiSupport.obj("model","deepseek-flash","max_tokens",16384,"thinking",ApiSupport.obj("type",request.optBoolean("thinking_enabled")?"enabled":"disabled"),"messages",blocks,"stream",true,"safety_check",ApiSupport.obj("level","high"),"title",ApiSupport.obj("enabled",true));
+                if(contextSummary!=null)payload.put("system",ApiContext.system(contextSummary));
                 if(request.optBoolean("search_enabled"))payload.put("tools",new JSONArray().put(ApiSupport.obj("type","deepseek_web_search","name","deepseek_web_search")).put(ApiSupport.obj("type","deepseek_read_url","name","deepseek_read_url")));
                 connection=ApiSupport.connection("/anthropic/v1/messages","POST",ApiSupport.key());connection.setDoOutput(true);connection.setRequestProperty("Content-Type","application/json");connection.setRequestProperty("Accept","text/event-stream");connection.setRequestProperty("anthropic-beta","files-api-2025-04-14");
-                try(OutputStream out=connection.getOutputStream()){out.write(payload.toString().getBytes(StandardCharsets.UTF_8));}
-                int code=connection.getResponseCode();if(code!=200)throw new IOException(ApiSupport.error(code));
+                connection.setReadTimeout(300000);byte[] bytes=payload.toString().getBytes(StandardCharsets.UTF_8);connection.setFixedLengthStreamingMode(bytes.length);
+                if(cancelled)return;try(OutputStream out=connection.getOutputStream()){out.write(bytes);}
+                httpCode=connection.getResponseCode();if(httpCode!=200)throw new IOException(ApiSupport.error(httpCode));
                 try(BufferedReader reader=new BufferedReader(new InputStreamReader(connection.getInputStream(),StandardCharsets.UTF_8))){String line;StringBuilder data=new StringBuilder();
-                    while(!cancelled&&(line=reader.readLine())!=null){if(line.isEmpty()){if(data.length()>0){consume(new JSONObject(data.toString()));data.setLength(0);}if(complete)break;}else if(line.startsWith("data:")){if(data.length()>0)data.append('\n');data.append(line.substring(5).trim());}}
+                    while(!cancelled&&(line=reader.readLine())!=null){if(line.startsWith("\ufeff"))line=line.substring(1);if(line.isEmpty()){if(data.length()>0){consume(new JSONObject(data.toString()));data.setLength(0);if(System.currentTimeMillis()-lastSave>=1000)checkpoint(null);}if(complete)break;}else if(line.startsWith("data:")){if(data.length()>0)data.append('\n');data.append(line.substring(5).trim());}}
+                    if(!cancelled&&!complete&&data.length()>0)consume(new JSONObject(data.toString()));
                 }
                 if(!complete&&!cancelled)throw new IOException("API 流式连接意外中断，请重新生成。");
-            }catch(Exception e){if(!cancelled)failure=e.getMessage()==null?"API 请求失败，请检查网络后重试。":e.getMessage();}
+            }catch(Exception e){if(!cancelled)failure=failure(e);}
             finally{
                 try{
                     if(assistant!=null){if(refusal){fragments=new JSONArray().put(ApiSupport.obj("type","RESPONSE","id",1,"content","抱歉，当前问题无法回答。"));}
                         assistant.put("fragments",fragments);assistant.put("status",failure==null?(cancelled?"INCOMPLETE":"FINISHED"):"FAILED");
-                        if(!cancelled){emitFragments(true);delta("response/status",assistant.getString("status"));}
-                        JSONArray raw=new JSONArray();for(JSONObject b:apiBlocks.values())raw.put(b);
-                        synchronized(storeLock){JSONObject rec=ApiSupport.obj("native",assistant);if(complete&&!refusal)rec.put("api_content",raw);session.getJSONObject("messages").put(Integer.toString(answerId),rec);if(title!=null&&!title.isEmpty())session.put("title",title);session.put("updated_at",System.currentTimeMillis()/1000.0);save(session);}
+                        emitFragments(true);delta("response/status",assistant.getString("status"));checkpoint(failure);
                         if(title!=null&&!cancelled)event("title",ApiSupport.obj("title",title));
                     }
                     if(failure!=null){event("toast",ApiSupport.obj("type","error","content",failure));ApiSupport.notice(failure);}
-                    if(!cancelled)event("finish",new JSONObject());
-                }catch(Exception ignored){}finally{HttpURLConnection c=connection;if(c!=null)c.disconnect();try{if(output!=null)output.close();}catch(IOException ignored){}running.remove(id,this);}
+                }catch(Exception ignored){}finally{try{event("finish",new JSONObject());}catch(Exception ignored){}HttpURLConnection c=connection;if(c!=null)c.disconnect();running.remove(id,this);}
             }
         }
         void consume(JSONObject e) throws Exception {
             String type=e.optString("type");int index=e.optInt("index");
             if(type.equals("error"))throw new IOException("DeepSeek API 流式请求失败，请稍后重试。");
+            if(type.equals("message_start")){JSONObject message=e.optJSONObject("message");if(message!=null){ApiContext.mergeUsage(usage,message.optJSONObject("usage"));if(message.has("model"))usage.put("model",message.getString("model"));}}
+            if(type.equals("message_delta"))ApiContext.mergeUsage(usage,e.optJSONObject("usage"));
             if(type.equals("content_block_start")){
                 JSONObject block=e.getJSONObject("content_block");apiBlocks.put(index,block);String bt=block.optString("type");JSONObject f=null;
                 if(bt.equals("thinking"))f=ApiSupport.obj("type","THINK","id",fragments.length()+1,"content",block.optString("thinking"));

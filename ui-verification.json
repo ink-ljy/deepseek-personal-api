@@ -1,5 +1,5 @@
 {
-  "version": "UI4",
+  "version": "UI5",
   "date": "2026-11-18",
   "result": "PASS",
   "environment": "isolated read-only Android 36 emulator",
@@ -36,24 +36,34 @@
     ]
   },
   "ui_checks": {
-    "quota_opens_from_original_settings_row": true,
-    "toolbar_back_returns_to_settings": true,
-    "about_shows_UI4_and_DSH_CODEX_attribution": true,
-    "system_back_returns_to_settings": true,
-    "original_CN_compliance_footer_renders_new_attribution": true,
-    "old_filing_ids_absent_from_APK": true,
-    "screenrecord_frame_review_slide_and_fade": true,
     "both_packages_update_install": true,
-    "coexist_cold_start": true
+    "coexist_cold_start": true,
+    "original_settings_quota_entry": true,
+    "quota_native_back": true,
+    "about_UI5_attribution": true,
+    "about_system_back": true,
+    "native_chat_actions_context_badge": true,
+    "context_compress_restore_fixture": true,
+    "context_native_back_and_system_back": true
   },
   "artifact_sha256": {
-    "DeepSeek-2.8.0-PersonalAPI.apk": "5887ed0fa658fe140f4a0a729b35f46920cbf27fa2a2cf60f313f429a4d3827f",
-    "DeepSeek-2.8.0-PersonalAPI-Coexist.apk": "350e51f4246e5ea617ce74446f176b6d809c67535de2e71271333aa364b2561f"
+    "DeepSeek-2.8.0-PersonalAPI.apk": "d8009e2000825370e4f7c1e9b71fa535353a57c119661ecd0af8550086154f0a",
+    "DeepSeek-2.8.0-PersonalAPI-Coexist.apk": "86f2568d8c984d49b1925fe854bc4749532173535989ea31fd15f9d2a2679eb0"
   },
-  "motion_video_sha256": "5c0342bdcee8b944a383ab3e93a8859d1ef502b391c7c042822bd21a09bd785e",
-  "reference_video_sha256": "ccea12fcc70c1cfb067cc03bc66a25359927969080354b045b1d90c0af2f4002",
+  "screenshots_sha256": {
+    "context-badge-ui5.png": "c4abad7eab5192a8e12bb694b7bd7b656e42b16896ab96f8b3b829075c7f3be3",
+    "context-page-ui5.png": "cc676ac9a4f7b01facb3983a88f0fa350b9b817b911bca3addd20c9bd224acb8",
+    "about-ui5.png": "1775405073a57cb157d21dc8bcd45c7330872604904a4a5578eea49a5dadb41c"
+  },
+  "inherited_UI4_motion_evidence": {
+    "note": "ApiPageDialog source unchanged since UI4; original motion reference/frame review is inherited, not a new phone acceptance",
+    "source_sha256": "c6c3e870d5e66c22cd949f7374ef377dc7d7d5b3fec0c511f8a54770756bf273",
+    "baseline_source_sha256": "c6c3e870d5e66c22cd949f7374ef377dc7d7d5b3fec0c511f8a54770756bf273"
+  },
   "limitations": [
-    "reproduced original motion parameters in the added page host; phone visual identity requires user acceptance",
-    "reference video and its private account screens are not published"
+    "chat Actions component hosted by test-only instrumentation; complete logged-in phone chat routing not visually accepted",
+    "context and summary screenshots use synthetic fixtures",
+    "phone appearance and original motion identity need user acceptance",
+    "private reference video and account screens not published"
   ]
 }

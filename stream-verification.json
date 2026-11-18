@@ -1,0 +1,45 @@
+{
+  "version": "UI5",
+  "date": "2026-11-18",
+  "result": "PASS",
+  "environment": "isolated read-only Android 36 emulator",
+  "transport": "deterministic HTTPS fixtures; no live API credentials, billing, or real phone network",
+  "checks_count": 22,
+  "checks": [
+    "closing native page reader does not cancel upstream API generation\r",
+    "active resume reattaches without another billed API request\r",
+    "resume restores original message snapshot without duplicate text\r",
+    "partial answer is checkpointed before generation finishes\r",
+    "detached long answer finishes without original pipe buffer backpressure\r",
+    "completed replay retains more than 128 KiB of answer content\r",
+    "completed replay does not regenerate or bill again\r",
+    "reattach preserves exactly one user and one assistant message in native history\r",
+    "idle thinking emits a valid native keepalive delta\r",
+    "SSE final message_stop without a trailing blank line completes successfully\r",
+    "real upstream truncation preserves partial text and is not marked finished\r",
+    "retry regenerates the failed answer instead of appending duplicate partial text\r",
+    "retry keeps original prompt and thinking/search options\r",
+    "retry reuses existing native message IDs with a bounded retry counter\r",
+    "repeated recovery is capped and never loops billed generation requests\r",
+    "authentication failure is replayed without repeated API calls\r",
+    "explicit Stop disconnects API and persists incomplete answer\r",
+    "reopening a deliberately stopped answer never restarts generation\r",
+    "multi-turn retry follows the selected original parent branch\r",
+    "retry preserves image file references in previous user context\r",
+    "retry preserves complete prior assistant API content\r",
+    "multi-turn retry reuses the failed response ID without duplicating history\r"
+  ],
+  "artifact_sha256": {
+    "DeepSeek-2.8.0-PersonalAPI.apk": "d8009e2000825370e4f7c1e9b71fa535353a57c119661ecd0af8550086154f0a",
+    "DeepSeek-2.8.0-PersonalAPI-Coexist.apk": "86f2568d8c984d49b1925fe854bc4749532173535989ea31fd15f9d2a2679eb0"
+  },
+  "test_source_sha256": {
+    "ApiStreamTest.java": "d0292a35c2ccaf6c54e3eefdd750a9a8918d0fd43bc2e73b94d0d90577b674ab",
+    "ApiSelfTest.java": "a30bb6debefda0f1bb28dd08a2909feb31a0006d7e8ac8f98873f21c6105e7c6"
+  },
+  "unverified": [
+    "user phone network interruption reproduction",
+    "Android kill-process recovery under real conditions",
+    "real API retries and associated usage"
+  ]
+}

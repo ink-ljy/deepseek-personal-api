@@ -47,6 +47,16 @@ def settings(source):
     end=source.index(needle,about)+len(needle)
     return source[:end]+'\n\n    invoke-static {v8}, LApiUi;->aboutRow(Ljava/lang/Object;)V'+source[end:]
 patch('smali/sz6.smali',settings)
+
+def chat_context_badge(source):
+    start=source.index('.method public static final e(Lbf2;Lem7;Lcb2;Lvt1;Lvy4;Lvy4;Lal7;Lh25;II)V')
+    end=source.index('.end method',start)
+    part=source[start:end]
+    needle='invoke-static/range {v0 .. v10}, Lf11;->H(Lvy4;Lem7;ZLh1a;Lgw;Lm98;Ljp7;Llz4;Lh25;II)V'
+    assert part.count(needle)==1
+    part=part.replace(needle,needle+'\n\n    invoke-static {v8}, LApiContextUi;->badge(Ljava/lang/Object;)V',1)
+    return source[:start]+part+source[end:]
+patch('smali/fc1.smali',chat_context_badge)
 patch('smali_classes3/x09.smali',lambda s:method_entry(s,'.method public final b(Lw89;)Lwa9;', '''    invoke-static/range {p1 .. p1}, LApiBridge;->intercept(Ljava/lang/Object;)Ljava/lang/Object;
     move-result-object v0
     if-eqz v0, :personal_api_original_request

@@ -14,7 +14,7 @@ public final class ApiSelfTest extends Instrumentation {
     Bundle args; ClassLoader loader; int checks;JSONArray testAttachments=new JSONArray();
     public void onCreate(Bundle arguments){args=arguments;start();}
     Class<?> c(String name)throws Exception{return loader.loadClass(name);}
-    Object field(Object o,String name)throws Exception{Field f=(o instanceof Class?(Class<?>)o:o.getClass()).getField(name);return f.get(o instanceof Class?null:o);}
+    Object field(Object o,String name)throws Exception{Class<?> type=o instanceof Class?(Class<?>)o:o.getClass();Field f;try{f=type.getField(name);}catch(NoSuchFieldException e){f=type.getDeclaredField(name);}f.setAccessible(true);return f.get(o instanceof Class?null:o);}
     Object call(Object o,String name,Object...values)throws Exception{
         Class<?> type=o instanceof Class?(Class<?>)o:o.getClass();List<Method> methods=new ArrayList<>(Arrays.asList(type.getMethods()));methods.addAll(Arrays.asList(type.getDeclaredMethods()));
         for(Method m:methods)if(m.getName().equals(name)&&m.getParameterTypes().length==values.length){try{m.setAccessible(true);return m.invoke(o instanceof Class?null:o,values);}catch(IllegalArgumentException ignored){}catch(InvocationTargetException e){Throwable t=e.getCause();if(t instanceof Exception)throw(Exception)t;throw e;}}
@@ -44,6 +44,7 @@ public final class ApiSelfTest extends Instrumentation {
                 Object padding=proxy("m98",(p2,m2,a2)->0f);
                 Object modifier=call(c("s9a"),"c",field(c("bm7"),"a"),1f);
                 if(args.getString("mode","").equals("footer")){call(c("u48"),"x",field(field(c("gz5"),"c"),"b"),modifier,composer,0);return field(c("qjb"),"a");}
+                if(args.getString("mode","").equals("contextui")){if(stage==4){Object reporter=make("by1",make("ev",null,0));Object provided=call(field(c("cy1"),"a"),"a",reporter);call(c("z7c"),"f",provided,compose(5),composer,0);}else call(c("fc1"),"e",null,null,null,null,noop,noop,null,composer,0,126);return field(c("qjb"),"a");}
                 Object[] values=new Object[22];values[0]=click;values[1]=false;for(int i=2;i<=11;i++)values[i]=noop;
                 values[12]=false;values[13]=noop;values[14]=proxy("yob",(p2,m2,a2)->"");values[15]=false;values[16]=false;values[17]=padding;values[18]=modifier;values[19]=composer;values[20]=0;values[21]=0;
                 call(c("sz6"),"l",values);
@@ -80,10 +81,14 @@ public final class ApiSelfTest extends Instrumentation {
         loader=getTargetContext().getClassLoader();call(c("ApiSupport"),"init",getTargetContext());
         String mode=args.getString("mode","protocol");
         if(mode.equals("media")){ApiMediaTest.run(this);}
-        else if(mode.equals("quota")||mode.equals("settings")||mode.equals("about")||mode.equals("footer")){
+        else if(mode.equals("stream")){ApiStreamTest.run(this);}
+        else if(mode.equals("context")){ApiContextTest.run(this);}
+        else if(mode.equals("quota")||mode.equals("settings")||mode.equals("about")||mode.equals("footer")||mode.equals("contextui")){
+            if(mode.equals("contextui")){ApiContextTest.transport();ApiContextTest.next=ApiContextTest.summary(this,"User goals, confirmed facts, exact numbers and remaining work are preserved in this test summary.","end_turn");call(c("ApiSupport"),"saveKey","local-ui-fixture-no-network");JSONObject seed=ApiContextTest.seed(this,"context-ui-"+System.nanoTime(),3);seed.getJSONObject("messages").getJSONObject("6").put("api_usage",json("input_tokens",900,"cache_read_input_tokens",5100,"output_tokens",1200));}
             Intent launch=getTargetContext().getPackageManager().getLaunchIntentForPackage("com.deepseek.chat");launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);Activity activity=startActivitySync(launch);call(c("ApiSupport"),"init",activity);
             runOnMainSync(()->{try{if(mode.equals("quota"))call(c("ApiUi"),"open",activity);else if(mode.equals("about"))call(c("ApiUi"),"openAbout",activity);else{android.view.View view=(android.view.View)make("androidx.compose.ui.platform.ComposeView",activity);call(view,"setContent",compose(0));activity.setContentView(view);}}catch(Exception e){throw new RuntimeException(e);}});Thread.sleep(1000);check(true,"native "+mode+" screen opened");
             if(args.getString("hold","false").equals("true"))Thread.sleep(45000);
+            if(mode.equals("contextui")){Object editor=call(call(c("ApiSupport"),"prefs"),"edit");call(editor,"remove","key");call(editor,"putBoolean","enabled",false);call(editor,"commit");}
         }else{
             String key=read(new FileInputStream("/data/local/tmp/deepseek-personal-api-test.key")).trim();call(c("ApiSupport"),"saveKey",key);check((Boolean)call(c("ApiSupport"),"enabled"),"API key stored and mode enabled");
             JSONObject balance=(JSONObject)call(c("ApiSupport"),"get","/user/balance",key);check(balance.getBoolean("is_available"),"native balance query succeeded");

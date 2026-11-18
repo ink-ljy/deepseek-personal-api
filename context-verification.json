@@ -1,0 +1,47 @@
+{
+  "version": "UI5",
+  "date": "2026-11-18",
+  "result": "PASS",
+  "environment": "isolated read-only Android 36 emulator",
+  "transport": "deterministic HTTPS fixtures; no live API credentials, billing, or real phone network",
+  "checks_count": 16,
+  "checks": [
+    "uncompressed context keeps exact multi-turn raw prefix\r",
+    "cumulative usage deltas overwrite instead of summing\r",
+    "Anthropic input total includes cache-hit tokens\r",
+    "cache percentage uses actual API usage\r",
+    "context space is explicitly estimated against documented 1M limit\r",
+    "compression uses one explicit public Messages API request\r",
+    "compression anchors after older complete assistant turn\r",
+    "compression keeps last two complete turns verbatim\r",
+    "compression preserves all history including recorded usage\r",
+    "summary is applied to descendants of its anchor\r",
+    "summary is excluded from unrelated earlier branches\r",
+    "real chat adapter sends summary plus preserved recent messages\r",
+    "real SSE parser persists usage in answer record\r",
+    "restore removes only summary and preserves all original messages\r",
+    "truncated summary is rejected atomically and releases compression lock\r",
+    "repeated compression without new older turns preserves previous summary\r"
+  ],
+  "artifact_sha256": {
+    "DeepSeek-2.8.0-PersonalAPI.apk": "d8009e2000825370e4f7c1e9b71fa535353a57c119661ecd0af8550086154f0a",
+    "DeepSeek-2.8.0-PersonalAPI-Coexist.apk": "86f2568d8c984d49b1925fe854bc4749532173535989ea31fd15f9d2a2679eb0"
+  },
+  "test_source_sha256": {
+    "ApiContextTest.java": "49d7e74d6c1ef70214b63bd923c1e72aa3936ea8964af810f70bdf7ba2112b40",
+    "ApiSelfTest.java": "a30bb6debefda0f1bb28dd08a2909feb31a0006d7e8ac8f98873f21c6105e7c6"
+  },
+  "unverified": [
+    "real summary quality and exact token savings",
+    "real cache hit improvement",
+    "complete logged-in phone chat routing"
+  ],
+  "ui_fixture_checks": [
+    "native chat Actions badge opens context page",
+    "actual cache ratio label from synthetic fixture",
+    "compress button applies summary and reduces effective message count",
+    "restore button restores original context",
+    "native toolbar Back",
+    "Android system Back"
+  ]
+}
